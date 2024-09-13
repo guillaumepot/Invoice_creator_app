@@ -10,10 +10,7 @@ Simple invoice generator using flask.
 
 ## Current Features
 
-- 
--
--
--
+- Start flask app & generate invoices using the script in utils
 
 
 ## Project Information
@@ -28,7 +25,6 @@ Simple invoice generator using flask.
 
 
 ## Table of Contents
-- [Introduction](#introduction)
 - [Installation](#installation)
     - [Requirements](#requirements)
 - [Repository](#repository)
@@ -37,16 +33,8 @@ Simple invoice generator using flask.
     - [Changelogs](#changelogs)
     - [Roadmap](#roadmap)
     - [Contributions](#contirbutions)
-- [Modules](#modules)
 - [Miscellaneous](#miscellaneous)
-    - [Data Sources](#data-sources)
 
-
-
-
-## Introduction
-
-[WIP]
 
 
 
@@ -54,16 +42,17 @@ Simple invoice generator using flask.
 
 ## Installation
 
--
--
-
-
+- Create a venv with requirements
+- Start flask app
+- Use generate_invoice.py script to generate invoices
 
 
 ### Requirements
 
-
-
+- python
+- flask
+- weasyprint
+- requests
 
 
 
@@ -76,25 +65,35 @@ Simple invoice generator using flask.
 
 ```
 |
-├── .github
-|      └── workflows
-|
 ├── changelogs
 |
-├── media               # general purpose files like imgs, txt used in the repository
+├── docuements          # Generated invoices are stored here
+|
+├── media               # General purpose files like imgs, txt used in the repository
+|
+├── src                 # Contains source files for app | modules
+|    |
+|    ├── static         # static files
+|    |
+|    ├── templates      # html templates
+|    |
+|    ├── app.py         # flask app
+|    |
+|    └── config.py      # flask config
+|
+├── utils               # Contains sscripts
 |
 ├── LICENSE
 |
-└── README.md
-
+├── README.md
+|
+└── requirements.txt    # Dependencies for flask app & scripts
 ```
 
 
 ### Branch Policy
 
-
 ```
-
 ├── main    # Main branch, contains releases
 |   
 ├── build   # Used to build releases
@@ -102,9 +101,7 @@ Simple invoice generator using flask.
 ├── debug   # Debug branch
 |
 └── develop # New features development branch
-
 ```
-
 
 
 ### Changelogs
@@ -116,34 +113,21 @@ Simple invoice generator using flask.
 ### Roadmap
 
 ```
-
 -
-
 ```
 
 
 ### Contributions
 
 ```
-
 -
-
 ```
-
-
-## Modules
-
-
-[Modules]
-
-
 
 
 
 
 ## Miscellaneous
 
-
-### Data sources
-
-[Data Sources]
+```
+-
+```
