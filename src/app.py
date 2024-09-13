@@ -120,4 +120,4 @@ def invoice():
 if __name__ == '__main__':
     host = os.environ.get("HOST", host)
     port = int(os.environ.get("PORT", port))
-    app.run(host=host, port=port, debug=True)
+    app.run(host=host, port=port, debug=False)
