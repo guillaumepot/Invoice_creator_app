@@ -17,12 +17,14 @@ def home():
 
 
 
+
 # Invoice Route
 @app.route('/invoice', methods = ['GET', 'POST'])
 def invoice():
 
     # Default data
     default_data = {
+        'language': 'fr',
         'invoice_nb': '20240101001',
         'created_date': '2024-01-01',
         'due_date': '2024-02-16',
@@ -54,8 +56,16 @@ def invoice():
                 'description': 'Description item 1',
                 'hour_rate': 50,
                 'quantity': 2,
-                'unit': 'hour',
+                'unit': 'h',
                 'total': 100,
+                'daily_rate': 600,
+            },
+            {
+                'description': 'Description item 2',
+                'hour_rate': 50,
+                'quantity': 3,
+                'unit': 'h',
+                'total': 150,
                 'daily_rate': 600,
             },
         ],
@@ -63,9 +73,19 @@ def invoice():
 
 
     # Initialize variables with default data
+    language = default_data['language']
     invoice_nb = default_data['invoice_nb']
+
     created_date = default_data['created_date']
     due_date = default_data['due_date']
+    if language == 'fr':
+        created_date = default_data['created_date'].replace('-', '/')
+        due_date = default_data['due_date'].replace('-', '/')
+        # Format from Y/M-d to d/m/Y
+        created_date = created_date[8:] + created_date[4:8] + created_date[:4]
+        due_date = due_date[8:] + due_date[4:8] + due_date[:4]
+
+
     currency = default_data['currency']
     company = default_data['company']
     customer = default_data['customer']
@@ -78,6 +98,7 @@ def invoice():
         posted_data = request.get_json() or {}
 
         # Generate vars
+        language = posted_data.get('language', default_data['language'])
         invoice_nb = posted_data.get('invoice_nb', default_data['invoice_nb'])
         created_date = posted_data.get('created_date', default_data['created_date'])
         due_date = posted_data.get('due_date', default_data['due_date'])
@@ -90,7 +111,7 @@ def invoice():
 
 
     # Render invoice
-    rendered = render_template('invoice.html',
+    rendered = render_template(f'invoice_{language}.html',
                                invoice_nb=invoice_nb,
                                created_date=created_date,
                                due_date=due_date,
@@ -120,4 +141,4 @@ def invoice():
 if __name__ == '__main__':
     host = os.environ.get("HOST", host)
     port = int(os.environ.get("PORT", port))
-    app.run(host=host, port=port, debug=False)
+    app.run(host=host, port=port, debug=True)

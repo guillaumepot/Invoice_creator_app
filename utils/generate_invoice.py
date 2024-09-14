@@ -64,10 +64,13 @@ date_format: dict = {
     'fr': '%d-%m-%Y',
 }
 
+
 # Config
 url: str = 'http://127.0.0.1:5000/invoice'
 due_date_days: int = 45
 currency: str = '€'
+language: str = 'fr' # en, fr
+
 
 company = Company(
     company_name='My company name',
@@ -113,6 +116,7 @@ if __name__ == '__main__':
 
     # data
     data = {
+        'language': language,
         'invoice_nb': invoice_nb,
         'created_date': created_date,
         'due_date': due_date,
