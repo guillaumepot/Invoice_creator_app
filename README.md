@@ -15,7 +15,7 @@ Simple invoice generator using flask.
 
 ## Project Information
 
-- **Version**: 0.0.1
+- **Version**: 0.0.2
 - **Development Stage**: Dev
 - **Author**: Guillaume Pot
 
@@ -106,6 +106,7 @@ Simple invoice generator using flask.
 
 ### Changelogs
 
+[v0.0.2](./changelogs/0.0.2.md)
 [v0.0.1](./changelogs/0.0.1.md)
 
 
