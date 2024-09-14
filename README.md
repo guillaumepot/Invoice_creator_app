@@ -15,7 +15,7 @@ Simple invoice generator using flask.
 
 ## Project Information
 
-- **Version**: 0.0.2
+- **Version**: 0.0.3
 - **Development Stage**: Dev
 - **Author**: Guillaume Pot
 
@@ -34,8 +34,6 @@ Simple invoice generator using flask.
     - [Roadmap](#roadmap)
     - [Contributions](#contirbutions)
 - [Miscellaneous](#miscellaneous)
-
-
 
 
 
@@ -67,7 +65,7 @@ Simple invoice generator using flask.
 |
 ├── changelogs
 |
-├── docuements          # Generated invoices are stored here
+├── documents          # Generated invoices are stored here
 |
 ├── media               # General purpose files like imgs, txt used in the repository
 |
@@ -106,6 +104,7 @@ Simple invoice generator using flask.
 
 ### Changelogs
 
+[v0.0.3](./changelogs/0.0.3.md)
 [v0.0.2](./changelogs/0.0.2.md)
 [v0.0.1](./changelogs/0.0.1.md)
 

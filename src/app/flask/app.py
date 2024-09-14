@@ -1,36 +1,81 @@
-from flask import Flask, render_template, send_file, request
+from flask import Flask, render_template, send_file, request, jsonify
 import io
 import os
 from weasyprint import HTML
 
-from config import host, port
-
+from config import host, port, mongo_host, mongo_port
 
 # Flask
 app = Flask(__name__)
 
 
-# Home Route
+# Home
 @app.route('/')
 def home():
-    return 'Hello World!'
+    return render_template('home.html')
+
+
+
+# Login
+@app.route('/login', methods = ['POST'])
+def login() -> None:
+    pass
+
+
+
+
+# Companies
+@app.route('/company/create', methods = ['POST'])
+def create_company() -> None:
+    pass
+
+@app.route('/company/delete/<name:str>', methods = ['DELETE'])
+def delete_company(name:str) -> None:
+    pass
+
+@app.route('/company/update/<name:str>', methods = ['PUT'])
+def update_company(name:str) -> None:
+    pass
+
+@app.route('/company/get', methods = ['GET'])
+def get_company() -> None:
+    pass
+
+
+# Items
+@app.route('/item/create', methods = ['POST'])
+def create_item() -> None:
+    pass
+
+@app.route('/item/delete/<name:str>', methods = ['DELETE'])
+def delete_item(name:str) -> None:
+    pass
+
+@app.route('/item/update/<name:str>', methods = ['PUT'])
+def update_item(name:str) -> None:
+    pass
+
+@app.route('/item/get', methods = ['GET'])
+def get_item() -> None:
+    pass
+
 
 
 
 
 # Invoice Route
-@app.route('/invoice', methods = ['GET', 'POST'])
+@app.route('/invoice/template', methods = ['GET', 'POST'])
 def invoice():
 
     # Default data
     default_data = {
-        'language': 'fr',
+        'language': 'en',
         'invoice_nb': '20240101001',
         'created_date': '2024-01-01',
         'due_date': '2024-02-16',
         'currency': '€',
         'company': {
-            'company_name': 'My compagny name',
+            'name': 'My compagny name',
             'address': 'XX rue XXXXXXX',
             'zipcode': 75000,
             'city': 'Paris',
@@ -41,7 +86,7 @@ def invoice():
             'vat_number': '12345678912345',
         },
         'customer': {
-            'company_name': 'My customer company',
+            'name': 'My customer company',
             'address': 'XX rue XXXXXXXX',
             'zipcode': 75000,
             'city': 'Paris',
@@ -54,7 +99,7 @@ def invoice():
         'items': [
             {
                 'description': 'Description item 1',
-                'hour_rate': 50,
+                'rate': 50,
                 'quantity': 2,
                 'unit': 'h',
                 'total': 100,
@@ -62,7 +107,7 @@ def invoice():
             },
             {
                 'description': 'Description item 2',
-                'hour_rate': 50,
+                'rate': 50,
                 'quantity': 3,
                 'unit': 'h',
                 'total': 150,

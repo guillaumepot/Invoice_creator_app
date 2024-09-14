@@ -1,0 +1,196 @@
+/* Global styles */
+body {
+    font-family: 'Helvetica Neue', 'Helvetica', Arial, sans-serif;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+}
+
+.invoice-box {
+    max-width: 800px;
+    margin: 30px auto;
+    padding: 20px;
+    border: 1px solid #eee;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+    background-color: #fff;
+    font-size: 16px;
+    page-break-inside: avoid;
+}
+
+table {
+    width: 100%;
+    line-height: inherit;
+    text-align: left;
+    border-collapse: collapse;
+}
+
+table td {
+    padding: 5px;
+    vertical-align: top;
+}
+
+table tr td:nth-child(2) {
+    text-align: right;
+}
+
+.title img {
+    max-height: 100px;
+    margin-bottom: 20px;
+}
+
+.title-text {
+    margin-top: 10px;
+    font-size: 25px;;
+}
+
+.bold-text {
+    font-weight: bold;
+}
+
+.right-align {
+    text-align: right;
+}
+
+/* Top section styles */
+.top table td {
+    padding-bottom: 20px;
+}
+
+.invoice-number {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Information section */
+.information table td {
+    padding-bottom: 40px;
+}
+
+/* Heading styles */
+.heading td {
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+}
+
+/* Align rate and total to the right */
+.rate, .total-right {
+    text-align: right;
+}
+
+/* Item rows */
+.item td {
+    border-bottom: 1px solid #eee;
+    padding: 10px 0;
+}
+
+.item:last-child td {
+    border-bottom: none;
+}
+
+/* Total section */
+.total td {
+    border-top: 2px solid #eee;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+/* Footer styles */
+.footer {
+    margin-top: 30px;
+    text-align: center;
+    color: #777;
+    font-size: 12px;
+}
+
+i {
+    font-style: italic;
+    color: #999;
+}
+
+/* Responsive styles for screen */
+@media only screen and (max-width: 600px) {
+    .invoice-box table {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .title img {
+        max-width: 100px;
+    }
+
+    table tr td {
+        display: block;
+        text-align: center;
+        padding-bottom: 10px;
+    }
+
+    .right-align {
+        text-align: center;
+    }
+}
+
+/* Print styles */
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #fff;
+    }
+
+    .invoice-box {
+        margin: 0;
+        padding: 10px;
+        border: none;
+        box-shadow: none;
+        max-width: 100%;
+    }
+
+    table {
+        page-break-inside: avoid;
+    }
+
+    .total {
+        page-break-inside: avoid;
+    }
+
+    .footer {
+        page-break-before: always;
+    }
+
+    /* Ensure the page is printed in A4 size */
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+
+    /* Remove shadows, borders, and colors to make it print-friendly */
+    .invoice-box {
+        border: none;
+        box-shadow: none;
+        color: #000;
+    }
+
+    .heading td {
+        background-color: #fff;
+        color: #000;
+        font-weight: bold;
+    }
+
+    .footer {
+        color: #000;
+    }
+
+    /* Fix height issues and prevent unnecessary page breaks */
+    html, body {
+        height: auto;
+    }
+
+    .invoice-box {
+        height: auto;
+        overflow: hidden;
+    }
+}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <title>A simple, clean, and responsive HTML invoice template</title>
-  <link rel="stylesheet" href="../static/styles.css">
+  <link rel="stylesheet" href="../static/invoices.css">
 </head>
 
 <body>
@@ -15,12 +15,12 @@
                     <tr>
                         <td class="title">
                             <img src="{{ url_for('static', filename='logo.jpeg') }}" style="height: 110px;">
-                            <div>
-                                <span class="bold-text">EI Guillaume Pot</span><br>
-                                <span class="invoice-number">Facture #{{invoice_nb}}</span>
+                            <div class="title-text">
+                              <span class="bold-text">{% if from_addr['name'] %}{{from_addr['name']}}<br>{% endif %}</span><br>
                             </div>
                         </td>
                         <td class="right-align">
+                            <span class="invoice-number">Facture #{{invoice_nb}}</span><br>
                             <span class="bold-text">Date:</span> {{created_date}}<br>
                             <span class="bold-text">Limite paiement:</span> {{due_date}}
                         </td>
@@ -37,7 +37,7 @@
             <tr>
               <td>
                 <b>Emetteur</b>:<br>
-                {% if from_addr['company_name'] %}{{from_addr['company_name']}}<br>{% endif %}
+                {% if from_addr['name'] %}{{from_addr['name']}}<br>{% endif %}
                 {% if from_addr['address'] %}{{from_addr['address']}}<br>{% endif %}
                 {% if to_addr['zipcode'] %}{{to_addr['zipcode']}}, {% endif %}{% if to_addr['city'] %}{{to_addr['city']}}<br>{% endif %}                {% if from_addr['city'] %}{{from_addr['city']}}<br>{% endif %}
                 {% if from_addr['country'] %}{{from_addr['country']}}<br>{% endif %}
@@ -48,7 +48,7 @@
               </td>
               <td class="right-align">
                 <b>Client</b>:<br>
-                {% if to_addr['company_name'] %}{{to_addr['company_name']}}<br>{% endif %}
+                {% if to_addr['name'] %}{{to_addr['name']}}<br>{% endif %}
                 {% if to_addr['address'] %}{{to_addr['address']}}<br>{% endif %}
                 {% if to_addr['zipcode'] %}{{to_addr['zipcode']}}, {% endif %}{% if to_addr['city'] %}{{to_addr['city']}}<br>{% endif %}
                 {% if to_addr['country'] %}{{to_addr['country']}}<br>{% endif %}
@@ -64,35 +64,35 @@
       
       <tr class="heading">
         <td>
-          Libellé
+            Libellé
         </td>
         <td>
-          Quantité
+            Quantité
+        </td>
+        <td class="rate">
+            Taux
+        </td>
+        <td class="total-right">
+            Total HT
+        </td>
+    </tr>
+    
+    {% for item in items %}
+    <tr class="item">
+        <td>
+            {{item['description']}}
         </td>
         <td>
-          Taux
+            {{item['quantity']}}{{item['unit']}}
         </td>
-        <td>
-          Total HT
+        <td class="rate">
+            {{item['rate']}}{{currency}}
         </td>
-      </tr>
-      
-      {% for item in items %}
-      <tr class="item">
-        <td>
-          {{item['description']}}
+        <td class="total-right">
+            {{item['total']}}{{currency}}
         </td>
-        <td>
-          {{item['quantity']}}{{item['unit']}}
-        </td>
-        <td>
-          {{item['hour_rate']}}{{currency}}
-        </td>
-        <td>
-          {{item['total']}}{{currency}}
-        </td>
-      </tr>
-      {% endfor %}
+    </tr>
+    {% endfor %}
 
       
       <tr class="total">
