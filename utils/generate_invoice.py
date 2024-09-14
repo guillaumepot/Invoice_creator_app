@@ -67,6 +67,10 @@ date_format: dict = {
 
 # Config
 url: str = 'http://127.0.0.1:5000/invoice'
+
+
+
+# Datas
 due_date_days: int = 45
 currency: str = '€'
 language: str = 'fr' # en, fr
@@ -128,7 +132,7 @@ if __name__ == '__main__':
 
     try:
         response = requests.post(url, json=data)
-        response.raise_for_status()  # Raise an error for bad status codes
+        response.raise_for_status()
         with open(f'../documents/invoice_{invoice_nb}.pdf', 'wb') as f:
             f.write(response.content)
         print(f"Invoice successfully created and saved as invoice_{invoice_nb}.pdf")
