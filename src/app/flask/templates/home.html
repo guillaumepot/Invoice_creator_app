@@ -4,29 +4,41 @@
   <meta charset="utf-8">
   <title>Invoice home page</title>
   <link rel="stylesheet" href="../static/home.css">
-</head>
-
-
-<body>
-  <h1>Hello World!!</h1>
-    
-  <form>
-    <label for="username">Username:</label>
-    <input type="text" id="username" name="username"><br><br>
-    
-    <label for="password">Password:</label>
-    <input type="password" id="password" name="password"><br><br>
-    
-    <button type="button" onclick="displayWIP()">Login</button>
-  </form>
-
   <script>
-    function displayWIP() {
-      alert("WIP");
-    }
+    document.addEventListener('DOMContentLoaded', function() {
+      function showFlashMessage() {
+        var flashMessages = JSON.parse('{{ get_flashed_messages(with_categories=true) | tojson | safe }}');
+        if (flashMessages.length > 0) {
+          flashMessages.forEach(function(message) {
+            alert(message[1]);
+          });
+        }
+      }
+      showFlashMessage();
+    });
   </script>
-
-
+</head>
+<body>
+  <h1>My company companion app</h1>
+    
+  {% if api_key %}  <!-- If connected-->
+    <div>
+      <button>My company</button>
+      <button>Clients</button>
+      <button>Quotes</button>
+      <button>Invoices</button>
+      
+      <form method="POST" action="/logout" style="display:inline;">
+        <button type="submit">Logout</button>
+      </form>
+    </div>
+  {% else %} <!-- If NOT connected-->
+    <form method="POST" action="/login" onsubmit="showFlashMessage()">
+      <label for="api_key">Api Key:</label>
+      <input type="text" id="api_key" name="api_key"><br><br>
+      <button type="submit">Submit</button>
+    </form>
+  {% endif %}
 
 </body>
 </html>

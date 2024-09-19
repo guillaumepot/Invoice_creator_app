@@ -1,45 +1,108 @@
 from flask import Flask, render_template, send_file, request, jsonify
+from flask import session, redirect, url_for, flash, g
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import io
 import os
+import time
 from weasyprint import HTML
 
-from config import host, port, mongo_host, mongo_port
+from config import host, port, mongo_host, mongo_port, require_api_key, control_api_key
 
 # Flask
 app = Flask(__name__)
+app.secret_key = 'faf1Fz1daf8Z8z191Z' # DEV - Set to a random value AS ENV VAR in the future
+
+# Limiter
+limiter = Limiter(
+    key_func=get_remote_address,        # Get the remote address
+    app=app,                            # Flask app
+    default_limits=["100 per hour"]     # Default limit
+)
+# Rate limit exceeded handler
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify(error="Rate limit exceeded"), 429
+# Middleware to add processing time header
+@app.before_request
+def before_request():
+    g.start_time = time.time()
+@app.after_request
+def after_request(response):
+    process_time = time.time() - g.start_time
+    response.headers["X-Process-Time"] = str(process_time)
+    return response
+
+
+# Test Route
+# curl -H "x-api-key: copy_api_key" http://localhost:5000/secure-endpoint
+@app.route('/test-secure-endpoint')
+@limiter.limit("300 per hour") # DEV - Set to 3/hour in the future
+@require_api_key
+def secure_endpoint():
+    return jsonify({"message": "Secure data"})
+
+# Login
+@app.route('/login', methods=['POST'])
+@limiter.limit("300 per hour") # DEV - Set to 3/hour in the future
+def set_api_key():
+    api_key = request.form['api_key']
+
+    # Test the API key
+    if not control_api_key(api_key):
+        flash('Bad key', 'error')
+    else:
+        session['api_key'] = api_key
+    return redirect(url_for('home'))
+
+# Logout
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.pop('api_key', None)
+    return redirect(url_for('home'))
 
 
 # Home
 @app.route('/')
 def home():
-    return render_template('home.html')
+    api_key = session.get('api_key')
+    return render_template('home.html', api_key=api_key)
 
 
 
-# Login
-@app.route('/login', methods = ['POST'])
-def login() -> None:
+
+
+# Administration
+@app.route('/admin/create/collection', methods = ['POST'])
+def create_collection(company: str) -> None:
+    pass
+
+@app.route('/admin/delete/collection', methods = ['DELETE'])
+def delete_collection(company: str) -> None:
+    pass
+
+@app.route('/admin/update/collection', methods = ['PUT'])
+def update_collection(company: str) -> None:
     pass
 
 
-
-
 # Companies
+@app.route('/company/display', methods = ['GET'])
+def get_company() -> None:
+    pass
+
 @app.route('/company/create', methods = ['POST'])
 def create_company() -> None:
     pass
 
-@app.route('/company/delete/<name:str>', methods = ['DELETE'])
+@app.route('/company/delete/<string:name>', methods = ['DELETE'])
 def delete_company(name:str) -> None:
     pass
 
-@app.route('/company/update/<name:str>', methods = ['PUT'])
+@app.route('/company/update/<string:name>', methods = ['PUT'])
 def update_company(name:str) -> None:
     pass
 
-@app.route('/company/get', methods = ['GET'])
-def get_company() -> None:
-    pass
 
 
 # Items
@@ -47,11 +110,11 @@ def get_company() -> None:
 def create_item() -> None:
     pass
 
-@app.route('/item/delete/<name:str>', methods = ['DELETE'])
+@app.route('/item/delete/<string:name>', methods = ['DELETE'])
 def delete_item(name:str) -> None:
     pass
 
-@app.route('/item/update/<name:str>', methods = ['PUT'])
+@app.route('/item/update/<string:name>', methods = ['PUT'])
 def update_item(name:str) -> None:
     pass
 
@@ -176,7 +239,7 @@ def invoice():
         rendered_pdf = html.write_pdf()
         return send_file(
                 io.BytesIO(rendered_pdf),
-                download_name='invoice.pdf',
+                download_name=f"{company['name']}_{invoice_nb}.pdf",
                 as_attachment=True,
             )
 

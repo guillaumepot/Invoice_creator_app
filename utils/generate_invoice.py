@@ -60,7 +60,7 @@ def display_list(providers:dict) -> list:
         print(f"{i}. {provider}")
         i+=1
         i_list.append(i)
-    print(f"{i}. Set new provider \n")
+    print(f"{i}. Set new company \n")
     return i_list
 
 
@@ -183,8 +183,8 @@ if __name__ == '__main__':
 
     # Generate data
     print("\n\n Generating invoice...")
-    created_date = datetime.today().strftime(date_format['en'])
-
+    #created_date = datetime.today().strftime(date_format['en'])
+    created_date = '2024-09-14'
 
     # Open emitted_invoices.json
     with open('./emitted_invoices.json', 'r') as f:
@@ -193,10 +193,15 @@ if __name__ == '__main__':
 
     # series_nb should be a format of three int '001'
     created_invoices_nb_today = [int(invoice_nb[-3:]) for invoice_nb in emitted_invoices.keys() if invoice_nb.startswith(created_date.replace('-', ''))]
-    series_nb = str(max(created_invoices_nb_today)+1).zfill(3)
+    
+    if created_invoices_nb_today:
+        series_nb = str(max(created_invoices_nb_today) + 1).zfill(3)
+    else:
+        series_nb = '001'
 
     invoice_nb = f"{created_date.replace('-', '')}{series_nb}"
-    created_date = datetime.today().strftime(date_format[language])
+    #created_date = datetime.today().strftime(date_format[language])
+    created_date = '14-09-2024'
     created_date_obj = datetime.strptime(created_date, date_format['fr'])
     due_date_obj = created_date_obj + timedelta(days=due_date_days)
     due_date = due_date_obj.strftime(date_format['fr'])
@@ -219,7 +224,7 @@ if __name__ == '__main__':
     try:
         response = requests.post(url, json=data)
         response.raise_for_status()
-        with open(f'../documents/invoice_{invoice_nb}.pdf', 'wb') as f:
+        with open(f"../documents/{customer['name']}_{invoice_nb}.pdf", 'wb') as f:
             f.write(response.content)
         print(f"Invoice successfully created and saved as invoice_{invoice_nb}.pdf")
     except requests.RequestException as e:

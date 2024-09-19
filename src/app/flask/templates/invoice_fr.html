@@ -39,7 +39,8 @@
                 <b>Emetteur</b>:<br>
                 {% if from_addr['name'] %}{{from_addr['name']}}<br>{% endif %}
                 {% if from_addr['address'] %}{{from_addr['address']}}<br>{% endif %}
-                {% if to_addr['zipcode'] %}{{to_addr['zipcode']}}, {% endif %}{% if to_addr['city'] %}{{to_addr['city']}}<br>{% endif %}                {% if from_addr['city'] %}{{from_addr['city']}}<br>{% endif %}
+                {% if from_addr['zipcode'] %}{{from_addr['zipcode']}},{% endif %}
+                {% if from_addr['city'] %}{{from_addr['city']}}<br>{% endif %}
                 {% if from_addr['country'] %}{{from_addr['country']}}<br>{% endif %}
                 {% if from_addr['phone'] %}{{from_addr['phone']}}<br>{% endif %}
                 {% if from_addr['email'] %}{{from_addr['email']}}<br>{% endif %}
@@ -83,7 +84,7 @@
             {{item['description']}}
         </td>
         <td>
-            {{item['quantity']}}{{item['unit']}}
+          {{item['quantity']|int}} {{item['unit']}}
         </td>
         <td class="rate">
             {{item['rate']}}{{currency}}

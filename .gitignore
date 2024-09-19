@@ -163,3 +163,8 @@ cython_debug/
 
 # MongoDB
 mongo_datas/
+
+# Key development files
+key.txt
+# All .json files
+*.json

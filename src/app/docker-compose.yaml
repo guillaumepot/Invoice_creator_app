@@ -13,6 +13,7 @@ services:
       - .env
     volumes:
       - ./mongo_datas:/data/db
+      - $PWD/mongo-entrypoint/:/docker-entrypoint-initdb.d/
     ports:
       - ${MONGO_PORT}:27017
     networks:
@@ -23,6 +24,9 @@ services:
       timeout: 10s
       retries: 3
     restart: on-failure
+    command: mongod --auth
+
+
 
 
   flask:
