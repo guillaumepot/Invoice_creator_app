@@ -7,7 +7,7 @@ import os
 import time
 from weasyprint import HTML
 
-from config import host, port, mongo_host, mongo_port, require_api_key, control_api_key
+from config import host, port, require_api_key, control_api_key, get_mongo_client, load_collection
 
 # Flask
 app = Flask(__name__)
@@ -17,7 +17,7 @@ app.secret_key = 'faf1Fz1daf8Z8z191Z' # DEV - Set to a random value AS ENV VAR i
 limiter = Limiter(
     key_func=get_remote_address,        # Get the remote address
     app=app,                            # Flask app
-    default_limits=["100 per hour"]     # Default limit
+    default_limits=["500 per hour"]     # Default limit  DEV - Set to 20/minute in the future
 )
 # Rate limit exceeded handler
 @app.errorhandler(429)
@@ -34,14 +34,9 @@ def after_request(response):
     return response
 
 
-# Test Route
-# curl -H "x-api-key: copy_api_key" http://localhost:5000/secure-endpoint
-@app.route('/test-secure-endpoint')
-@limiter.limit("300 per hour") # DEV - Set to 3/hour in the future
-@require_api_key
-def secure_endpoint():
-    return jsonify({"message": "Secure data"})
+### ROUTES
 
+## AUTH
 # Login
 @app.route('/login', methods=['POST'])
 @limiter.limit("300 per hour") # DEV - Set to 3/hour in the future
@@ -57,10 +52,12 @@ def set_api_key():
 
 # Logout
 @app.route('/logout', methods=['POST'])
+@require_api_key
 def logout():
     session.pop('api_key', None)
     return redirect(url_for('home'))
 
+## HOME
 
 # Home
 @app.route('/')
@@ -69,179 +66,101 @@ def home():
     return render_template('home.html', api_key=api_key)
 
 
+## MY_COMPANY
+@app.route('/company/info', methods = ['GET'])
+@require_api_key
+def get_company_info() -> dict:
+
+    api_key = session.get('api_key')
+    company_collection = load_collection(api_key, 'Company')
+    company_document = company_collection.find_one()
+
+    company_data = {
+        'name': company_document.get('name') if company_document else None,
+        'address': company_document.get('address') if company_document else None,
+        'zipcode': company_document.get('zipcode') if company_document else None,
+        'city': company_document.get('city') if company_document else None,
+        'country': company_document.get('country') if company_document else None,
+        'phone': company_document.get('phone') if company_document else None,
+        'email': company_document.get('email') if company_document else None,
+        'siret': company_document.get('siret') if company_document else None,
+        'vat_number': company_document.get('vat_number') if company_document else None,
+    }
+    return jsonify(company_data)
 
 
+@app.route('/company/update', methods = ['PUT'])
+@require_api_key
+def update_company() -> None:
+    api_key = session.get('api_key')
+    company_collection = load_collection(api_key, 'Company')
+    company_document = company_collection.find_one()
 
-# Administration
-@app.route('/admin/create/collection', methods = ['POST'])
-def create_collection(company: str) -> None:
-    pass
+    posted_data = request.get_json() or {}
 
-@app.route('/admin/delete/collection', methods = ['DELETE'])
-def delete_collection(company: str) -> None:
-    pass
-
-@app.route('/admin/update/collection', methods = ['PUT'])
-def update_collection(company: str) -> None:
-    pass
-
-
-# Companies
-@app.route('/company/display', methods = ['GET'])
-def get_company() -> None:
-    pass
-
-@app.route('/company/create', methods = ['POST'])
-def create_company() -> None:
-    pass
-
-@app.route('/company/delete/<string:name>', methods = ['DELETE'])
-def delete_company(name:str) -> None:
-    pass
-
-@app.route('/company/update/<string:name>', methods = ['PUT'])
-def update_company(name:str) -> None:
-    pass
-
-
-
-# Items
-@app.route('/item/create', methods = ['POST'])
-def create_item() -> None:
-    pass
-
-@app.route('/item/delete/<string:name>', methods = ['DELETE'])
-def delete_item(name:str) -> None:
-    pass
-
-@app.route('/item/update/<string:name>', methods = ['PUT'])
-def update_item(name:str) -> None:
-    pass
-
-@app.route('/item/get', methods = ['GET'])
-def get_item() -> None:
-    pass
-
-
-
-
-
-# Invoice Route
-@app.route('/invoice/template', methods = ['GET', 'POST'])
-def invoice():
-
-    # Default data
-    default_data = {
-        'language': 'en',
-        'invoice_nb': '20240101001',
-        'created_date': '2024-01-01',
-        'due_date': '2024-02-16',
-        'currency': '€',
-        'company': {
-            'name': 'My compagny name',
-            'address': 'XX rue XXXXXXX',
-            'zipcode': 75000,
-            'city': 'Paris',
-            'country': 'France',
-            'phone': '01 23 45 67 89',
-            'email': 'mail@mail.com',
-            'siret': '123456789123',
-            'vat_number': '12345678912345',
-        },
-        'customer': {
-            'name': 'My customer company',
-            'address': 'XX rue XXXXXXXX',
-            'zipcode': 75000,
-            'city': 'Paris',
-            'country': 'France',
-            'phone': '01 23 45 67 89',
-            'email': 'mail@mail.com',
-            'siret': '123456789123',
-            'vat_number': '12345678912345'
-        },
-        'items': [
-            {
-                'description': 'Description item 1',
-                'rate': 50,
-                'quantity': 2,
-                'unit': 'h',
-                'total': 100,
-                'daily_rate': 600,
-            },
-            {
-                'description': 'Description item 2',
-                'rate': 50,
-                'quantity': 3,
-                'unit': 'h',
-                'total': 150,
-                'daily_rate': 600,
-            },
-        ],
+    company_data = {
+        'name': posted_data.get('name') or company_document.get('name'),
+        'address': posted_data.get('address') or company_document.get('address'),
+        'zipcode': posted_data.get('zipcode') or company_document.get('zipcode'),
+        'city': posted_data.get('city') or company_document.get('city'),
+        'country': posted_data.get('country') or company_document.get('country'),
+        'phone': posted_data.get('phone') or company_document.get('phone'),
+        'email': posted_data.get('email') or company_document.get('email'),
+        'siret': posted_data.get('siret') or company_document.get('siret'),
+        'vat_number': posted_data.get('vat_number') or company_document.get('vat_number'),
     }
 
+    company_collection.replace_one({}, company_data, upsert=True)
 
-    # Initialize variables with default data
-    language = default_data['language']
-    invoice_nb = default_data['invoice_nb']
+    return jsonify(company_data)
 
-    created_date = default_data['created_date']
-    due_date = default_data['due_date']
-    if language == 'fr':
-        created_date = default_data['created_date'].replace('-', '/')
-        due_date = default_data['due_date'].replace('-', '/')
-        # Format from Y/M-d to d/m/Y
-        created_date = created_date[8:] + created_date[4:8] + created_date[:4]
-        due_date = due_date[8:] + due_date[4:8] + due_date[:4]
+## CLIENTS
+@app.route('/client/list', methods=['GET'])
+@require_api_key
+def get_client_list() -> dict:
+    api_key = session.get('api_key')
+    company_collection = load_collection(api_key, 'Clients')
+    client_documents = company_collection.find()
 
-
-    currency = default_data['currency']
-    company = default_data['company']
-    customer = default_data['customer']
-    items = default_data['items']
-    total_to_pay = sum([item['total'] for item in items])
-    formatted_total_to_pay = "{:.2f}".format(total_to_pay)
-
-    if request.method == 'POST':
-        # Posted data
-        posted_data = request.get_json() or {}
-
-        # Generate vars
-        language = posted_data.get('language', default_data['language'])
-        invoice_nb = posted_data.get('invoice_nb', default_data['invoice_nb'])
-        created_date = posted_data.get('created_date', default_data['created_date'])
-        due_date = posted_data.get('due_date', default_data['due_date'])
-        currency = posted_data.get('currency', default_data['currency'])
-        company = posted_data.get('company', default_data['company'])
-        customer = posted_data.get('customer', default_data['customer'])
-        items = posted_data.get('items', default_data['items'])
-        total_to_pay = sum([item['total'] for item in items])
-        formatted_total_to_pay = "{:.2f}".format(total_to_pay)
+    clients = [{"name": client.get('name')} for client in client_documents]
+    if not clients:
+        return jsonify({"clients": [], "no_clients": True})
+    return jsonify({"clients": clients})
 
 
-    # Render invoice
-    rendered = render_template(f'invoice_{language}.html',
-                               invoice_nb=invoice_nb,
-                               created_date=created_date,
-                               due_date=due_date,
-                               from_addr=company,
-                               to_addr=customer,
-                               items=items,
-                               total=formatted_total_to_pay,
-                               currency=currency,
-                               )
+@app.route('/client/add', methods=['POST'])
+@require_api_key
+def add_client():
+    api_key = session.get('api_key')
+    company_collection = load_collection(api_key, 'Clients')
+    new_client = request.json
+
+    if not new_client.get('name'):
+        return jsonify({"error": "Client name is required"}), 400
+
+    company_collection.insert_one(new_client)
+    return jsonify({"message": "Client added successfully"})
 
 
-    if request.method == 'GET':
-        return rendered
-    else:
-        # Generate PDF and send it
-        html = HTML(string=rendered, base_url=request.url_root)
-        rendered_pdf = html.write_pdf()
-        return send_file(
-                io.BytesIO(rendered_pdf),
-                download_name=f"{company['name']}_{invoice_nb}.pdf",
-                as_attachment=True,
-            )
+@app.route('/client/info/<client_name>', methods=['GET'])
+@require_api_key
+def get_client_info(client_name: str) -> dict:
+    api_key = session.get('api_key')
+    company_collection = load_collection(api_key, 'Clients')
+    client_document = company_collection.find_one({'name': client_name})
+
+    client_data = {
+        'name': client_document.get('name') if client_document else None,
+        'address': client_document.get('address') if client_document else None,
+        'zipcode': client_document.get('zipcode') if client_document else None,
+        'city': client_document.get('city') if client_document else None,
+        'country': client_document.get('country') if client_document else None,
+        'phone': client_document.get('phone') if client_document else None,
+        'email': client_document.get('email') if client_document else None,
+        'siret': client_document.get('siret') if client_document else None,
+        'vat_number': client_document.get('vat_number') if client_document else None,
+    }
+    return jsonify(client_data)
 
 
 

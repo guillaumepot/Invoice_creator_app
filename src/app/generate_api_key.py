@@ -14,14 +14,14 @@ def generate_api_key():
         # get informations
         firstname: str = input("Enter your firstname: ").strip()
         lastname: str = input("Enter your lastname: ").strip()
-        company: str = input("Enter your company name: ").strip()
+        base_company: str = input("Enter your company name: ").strip()
 
-        if not firstname or not lastname or not company:
+        if not firstname or not lastname or not base_company:
             raise ValueError("All fields are required.")
 
 
         # update company to a name without spaces and lowercase
-        company = company.replace(" ", "_").lower()
+        company = base_company.replace(" ", "_").lower()
 
 
         # generate key
@@ -42,7 +42,13 @@ def generate_api_key():
             pass
         finally:
             # generate data to dump
-            data[f"{firstname}_{lastname}"] = hashed_api_key
+            username = f"{firstname}_{lastname}"
+            data[username] = {
+                "username": username,
+                "key": hashed_api_key,
+                "company": company
+            }
+
             # write updated data to the file
             with open(file_path, "w") as f:
                 json.dump(data, f, indent=4)
@@ -52,22 +58,29 @@ def generate_api_key():
         client = MongoClient(
                             host = "127.0.0.1",
                             port = 27017,
-                            username = "root",
-                            password = "root"
+                            username = "root", # DEV - Change to a secure user
+                            password = "root"  # DEV - Change to a secure password
                         )
         
         with client:
             db = client[company]
             db.command("createUser",
                        f"{firstname}_{lastname}",
-                       pwd=hashed_api_key,
-                       roles=["readWrite"]
+                       pwd=api_key,
+                       roles=["readWrite"],
+                       customData={"company": company}
                        )
             
             db.create_collection("Quotes")
             db.create_collection("Invoices")
-            db.create_collection("Companies")
+            db.create_collection("Company")
             db.create_collection("Items")
+            db.create_collection("Clients")
+            
+
+            db.Company.insert_one({
+                "name" : base_company
+            })
 
 
     except ValueError as e:
