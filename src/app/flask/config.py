@@ -1,10 +1,11 @@
-from flask import request, session
+from flask import session
 from functools import wraps
 import json
 import os
 from passlib.context import CryptContext
 from pymongo import MongoClient
 from werkzeug.exceptions import Unauthorized
+
 
 
 # Env VARS
@@ -48,11 +49,11 @@ def control_api_key(api_key:str, file_path:str = keys_file_path) -> bool:
 def require_api_key(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not session.get('api_key'):
+        api_key = session.get('api_key')
+        if not api_key:
             raise Unauthorized("Unauthorized")
         return f(*args, **kwargs)
     return decorated_function
-
 
 
 # MongoDB connection

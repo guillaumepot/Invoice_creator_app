@@ -1,27 +1,3 @@
-
-
-
-# Items
-@app.route('/item/create', methods = ['POST'])
-def create_item() -> None:
-    pass
-
-@app.route('/item/delete/<string:name>', methods = ['DELETE'])
-def delete_item(name:str) -> None:
-    pass
-
-@app.route('/item/update/<string:name>', methods = ['PUT'])
-def update_item(name:str) -> None:
-    pass
-
-@app.route('/item/get', methods = ['GET'])
-def get_item() -> None:
-    pass
-
-
-
-
-
 # Invoice Route
 @app.route('/invoice/template', methods = ['GET', 'POST'])
 def invoice():
