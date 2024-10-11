@@ -4,7 +4,7 @@
 
 # Runtime to use as a base image
 ARG PYTHON_VERSION=3.10.12
-FROM python:${PYTHON_VERSION}
+FROM python:${PYTHON_VERSION}-slim
 
 
 

@@ -253,8 +253,6 @@ if page == pages[3]: # Items
             st.write("No items found.")
 
 
-
-
     elif subpage == subpages[1]: # New Item
         st.title(subpages_name[st.session_state.lang][1])
 
@@ -296,6 +294,88 @@ if page == pages[4]:  # Quotes
 
     if subpage == subpages[0]:  # Quote List
         st.title(subpages_name[st.session_state.lang][0])
+        
+
+        # Fetch quotes
+        data = fetch_quotes()
+
+        if "quotes" in data:
+            sorted_quotes = sorted(data["quotes"], key=lambda quote: quote["name"])
+
+            for quote in sorted_quotes:
+                with st.expander(quote["name"], expanded=False):
+
+                    # First row
+                    keys_order_row1 = ["name"]
+                    for key in keys_order_row1:
+                        st.text(key.capitalize() + ": " + str(quote.get(key, "")))
+                    
+                    # Second row
+                    keys_order_row2 = ["client"]
+                    for key in keys_order_row2:
+                        st.text(key.capitalize() + ": " + str(quote.get(key, "")))
+
+                    # Third row
+                    keys_order_row3 = ["created_date", "valid_until"]
+                    column_widths_row3 = [1, 1]
+                    cols_row3 = st.columns(column_widths_row3)
+                    for col, key in zip(cols_row3, keys_order_row3):
+                        col.text(key.capitalize() + ": " + str(quote.get(key, "")))
+
+                    # Fourth row
+                    keys_order_row4 = ["total_amount", "vat", "total_amount_vat"]
+                    column_widths_row4 = [1, 1, 1]
+                    cols_row4 = st.columns(column_widths_row4)
+                    for col, key in zip(cols_row4, keys_order_row4):
+                        col.text(key.capitalize() + ": " + str(quote.get(key, "")))
+
+                    # Fifth row
+                    keys_order_row5 = ["discount", "discount_description"]
+                    column_widths_row5 = [1, 2]
+                    cols_row5 = st.columns(column_widths_row5)
+                    for col, key in zip(cols_row5, keys_order_row5):
+                        col.text(key.capitalize() + ": " + str(quote.get(key, "")))
+
+                    # Sixth row
+                    keys_order_row6 = ["currency", "notes", "terms"]
+                    column_widths_row6 = [1, 2, 2]
+                    cols_row6 = st.columns(column_widths_row6)
+                    for col, key in zip(cols_row6, keys_order_row6):
+                        col.text(key.capitalize() + ": " + str(quote.get(key, "")))
+
+                    # Seventh row
+                    keys_order_row7 = ["items"]
+                    for key in keys_order_row7:
+                        items = quote.get(key, [])
+                        if isinstance(items, list):
+                            items_str = ", ".join([str(item) for item in items])
+                        else:
+                            items_str = str(items)
+                        st.text(key.capitalize() + ": " + items_str)
+
+                    with col1:
+                        if st.button("Update", key=f"update_{quote['name']}"):
+                            updated_quote_data = {}
+                            updated_quote_data["name"] = quote["name"]
+                            for key in keys_order_row1 + keys_order_row2:
+                                unique_key = f"{quote['name']}_{key}"
+                                updated_item_data[key] = st.session_state.get(unique_key, quote.get(key, ""))
+
+                            update_quote(updated_item_data)
+                            st.rerun()
+                            
+                    with col2:
+                        if st.button("Delete", key=f"delete_{quote['_id']}"):
+                            delete_quote(quote["name"])
+                            st.rerun()
+                            
+
+
+
+        else:
+            st.write("No quotes found.")
+
+
 
     elif subpage == subpages[1]:  # New Quote
         st.title(subpages_name[st.session_state.lang][1])
@@ -321,9 +401,6 @@ if page == pages[4]:  # Quotes
             item_names = [item["name"] for item in items_data.get("items", [])]
             selected_items = st.multiselect("Select Items", item_names)
             
-            # Debug statement to check selected items
-            st.write("Selected Items:", selected_items)
-            
             # Ensure number input fields are created
             item_quantities = {item: st.number_input(f"Quantity for {item}", min_value=0, value=1) for item in selected_items}
 
@@ -335,12 +412,12 @@ if page == pages[4]:  # Quotes
 
         with st.expander("Currency, notes, and terms", expanded=False):
             # Currency, notes, and terms
-            currency = st.selectbox("Currency", ["USD", "EUR", "GBP"])
+            currency = st.selectbox("Currency", ["EUR", "USD", "GBP"])
             notes = st.text_area("Notes")
             terms = st.text_area("Terms")
 
         # Calculate amounts
-        total_amount = sum(items_data["items"][item_names.index(item)]["rate"] * quantity for item, quantity in item_quantities.items())
+        total_amount = sum(float(items_data["items"][item_names.index(item)]["rate"]) * quantity for item, quantity in item_quantities.items())
         vat_percentage = float(vat.strip('%')) / 100
         total_amount_vat = total_amount * (1 + vat_percentage)
 
@@ -362,12 +439,7 @@ if page == pages[4]:  # Quotes
         }
 
         if st.button("Create"):
-            st.warning("WIP")
-            st.write(quote_data)
-        # create_new_quote(quote_data)
-
-
-
+            create_new_quote(quote_data)
 
 
 

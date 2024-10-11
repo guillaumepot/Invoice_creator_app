@@ -9,17 +9,43 @@ from werkzeug.exceptions import Unauthorized
 
 
 # Env VARS
-host= os.getenv('FLASK_HOST', '0.0.0.0')
-port = int(os.getenv('FLASK_PORT', 5000))
+FLASK_HOST = os.getenv('FLASK_HOST', '0.0.0.0')
+FLASK_PORT = int(os.getenv('FLASK_PORT', 5000))
+DEBUG_MODE = os.getenv('FLASK_DEBUG', True)
 
-mongo_host= os.getenv('MONGO_HOST', 'app-mongodb-1')
-mongo_port = int(os.getenv('MONGO_PORT', 27017))
+FLASK_SECRET_APP_KEY = os.getenv("FLASK_SECRET_APP_KEY", "faf1Fz1daf8Z8z191Z")
+HASH_ALGORITHM = os.getenv('HASH_ALGORITHM', 'argon2')
+
+
+MONGO_HOST= os.getenv('MONGO_HOST', 'invoice-mongodb')
+MONGO_PORT = int(os.getenv('MONGO_PORT', 27017))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Api Keys file
 keys_file_path = "./api_keys.json"
 
 # CryptContext
-pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
+pwd_context = CryptContext(schemes=[HASH_ALGORITHM], deprecated="auto")
 
 
 # SECURE ROUTES DECORATOR

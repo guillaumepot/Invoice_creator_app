@@ -141,6 +141,40 @@ def create_new_item(item_data):
         st.error(response.text)
 
 
+
+def fetch_quotes():
+    url = f"http://{api_url}:{api_port}/quotes"
+    response = st.session_state.session.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        st.error("Failed to fetch quotes.")
+        st.error(response.text)
+        return {}
+    
+
+def update_quote(quote_data):
+    st.write(quote_data)
+    url = f"http://{api_url}:{api_port}/quotes"
+    response = st.session_state.session.put(url, json=quote_data)
+    if response.status_code == 200:
+        st.success("Item updated successfully.")
+    else:
+        st.error("Failed to update item.")
+
+
+
+def delete_quote(quote_data):
+    url = f"http://{api_url}:{api_port}/quotes"
+    response = st.session_state.session.delete(url, json={"_id": quote_data})
+    if response.status_code == 200:
+        st.success("Item deleted successfully.")
+    else:
+        st.error("Failed to delete item.")
+        st.error(response.text)
+
+    
+
 def create_new_quote(quote_data):
     url = f"http://{api_url}:{api_port}/quotes"
     response = st.session_state.session.post(url, json=quote_data)
@@ -149,6 +183,8 @@ def create_new_quote(quote_data):
     else:
         st.error("Failed to create quote.")
         st.error(response.text)
+
+
 
 
 

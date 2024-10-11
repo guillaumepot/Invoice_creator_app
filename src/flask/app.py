@@ -1,26 +1,22 @@
 from flask import Flask, render_template, send_file, request, jsonify
 from flask import session, redirect, url_for, flash, g
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 import io
-import os
 import time
 from uuid import uuid4
 from weasyprint import HTML
 
-from config import host, port, require_api_key, control_api_key, get_mongo_client, load_collection
+from config import FLASK_HOST, FLASK_PORT, DEBUG_MODE, FLASK_SECRET_APP_KEY, require_api_key, control_api_key, get_mongo_client, load_collection
+
+
 
 # Flask
 app = Flask(__name__)
-app.secret_key = 'faf1Fz1daf8Z8z191Z' # DEV - Set to a random value AS ENV VAR in the future
+app.secret_key = FLASK_SECRET_APP_KEY
 
-# Limiter
-limiter = Limiter(
-    key_func=get_remote_address,        # Get the remote address
-    app=app,                            # Flask app
-    default_limits=["1000 per hour"]     # Default limit  DEV - Set to 20/minute in the future
-)
-# Rate limit exceeded handler
+
+"""
+Limiter
+"""
 @app.errorhandler(429)
 def ratelimit_handler(e):
     return jsonify(error="Rate limit exceeded"), 429
@@ -33,6 +29,25 @@ def after_request(response):
     process_time = time.time() - g.start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### ROUTES
@@ -253,39 +268,47 @@ def get_items() -> dict:
 
 
 ## QUOTES
-@app.route('/quote/create', methods=['GET', 'POST', 'PUT', 'DELETE'])
+@app.route('/quotes', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @require_api_key
 def create_quote():
     api_key = session.get('api_key')
     quote_collection = load_collection(api_key, 'Quotes')
     quote_documents = quote_collection.find()
-    return
 
 
-    # if request.method == 'GET':
-    #     items = [{
-    #         '_id': item.get('_id'),
-    #         'name': item.get('name'),
-    #         'description': item.get('description'),
-    #         'unit': item.get('unit'),
-    #         'rate': item.get('rate')
-    #     } for item in items_documents]
-    
-    #     if not items:
-    #         return jsonify({"items": [], "no_items": True})
-    #     return jsonify({"items": items})
+    if request.method == 'GET':
+        quotes = [{
+            'name': quote.get('name'),
+            'created_date': quote.get('created_date'),
+            'valid_until': quote.get('valid_until'),
+            'client': quote.get('client'),
+            "total_amount": quote.get('total_amount'),
+            "vat": quote.get('vat'),
+            "total_amount_vat": quote.get('total_amount_vat'),
+            "discount": quote.get('discount'),
+            "discount_description": quote.get('discount_description'),
+            "currency": quote.get('currency'),
+            "notes": quote.get('notes'),
+            "terms": quote.get('terms'),
+            "items": quote.get('items')
+        } for quote in quote_documents]
 
 
-    # if request.method == 'POST':
-    #     # Add new item
-    #     new_item = request.json
-    #     new_item['_id'] = str(uuid4())
+        if not quotes:
+            return jsonify({"quotes": [], "no_quotes": True})
+        return jsonify({"quotes": quotes})
 
-    #     if not new_item.get('name'):
-    #         return jsonify({"error": "Item name is required"}), 400
 
-    #     items_collection.insert_one(new_item)
-    #     return jsonify({"message": "Item added successfully"})
+    if request.method == 'POST':
+        # Add new item
+        new_item = request.json
+        new_item['_id'] = str(uuid4())
+
+        if not new_item.get('name'):
+            return jsonify({"error": "Item name is required"}), 400
+
+        quote_collection.insert_one(new_item)
+        return jsonify({"message": "Quote added successfully"})
 
 
 
@@ -393,6 +416,4 @@ def get_invoice_info(invoice_number: str):
 
 # Start app
 if __name__ == '__main__':
-    host = os.environ.get("HOST", host)
-    port = int(os.environ.get("PORT", port))
-    app.run(host=host, port=port, debug=True)
+    app.run(host=FLASK_HOST, port=FLASK_PORT, debug=DEBUG_MODE)

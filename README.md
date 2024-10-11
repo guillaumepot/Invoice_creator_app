@@ -15,8 +15,8 @@ Simple invoice generator using flask.
 
 ## Project Information
 
-- **Version**: 0.0.3
-- **Development Stage**: Dev
+- **Version**: 1.0.0
+- **Development Stage**: Prod
 - **Author**: Guillaume Pot
 
 [![LinkedIn Badge](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/062guillaumepot/)
@@ -104,7 +104,7 @@ Simple invoice generator using flask.
 
 ### Changelogs
 
-[v0.0.3](./changelogs/0.0.3.md)
+[v1.0.0](./changelogs/1.0.0.md)
 [v0.0.2](./changelogs/0.0.2.md)
 [v0.0.1](./changelogs/0.0.1.md)
 
