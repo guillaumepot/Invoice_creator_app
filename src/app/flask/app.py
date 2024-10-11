@@ -153,7 +153,7 @@ def client_request():
 
 
     if request.method == 'PUT':
-        # Update clients
+        # Update client
         posted_data = request.get_json() or {}
         client_id = posted_data.get('_id')
         existing_client = client_collection.find_one({'_id': client_id})
@@ -187,134 +187,138 @@ def client_request():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@app.route('/client/update/<client_name>', methods=['PUT'])
-@require_api_key
-def update_client(client_name: str):
-    api_key = session.get('api_key')
-    company_collection = load_collection(api_key, 'Clients')
-    updated_client = request.json
-
-    if not updated_client.get('name'):
-        return jsonify({"error": "Client name is required"}), 400
-
-    company_collection.replace_one({'name': client_name}, updated_client)
-    return jsonify({"message": "Client updated successfully"})
-
-
-@app.route('/client/delete/<client_name>', methods=['DELETE'])
-@require_api_key
-def delete_client(client_name: str):
-    api_key = session.get('api_key')
-    company_collection = load_collection(api_key, 'Clients')
-
-    company_collection.delete_one({'name': client_name})
-    return jsonify({"message": "Client deleted successfully"})
-
-
-
-
 ## ITEMS
-@app.route('/items/list', methods=['GET'])
+@app.route('/items', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @require_api_key
 def get_items() -> dict:
     api_key = session.get('api_key')
-    company_collection = load_collection(api_key, 'Items')
-    items_documents = company_collection.find()
+    items_collection = load_collection(api_key, 'Items')
+    items_documents = items_collection.find()
 
-    items = [{
-        'description': item.get('description'),
-        'rate': item.get('rate'),
-        'unit': item.get('unit'),
-        'quantity': item.get('quantity')
-    } for item in items_documents]
+    if request.method == 'GET':
+        items = [{
+            '_id': item.get('_id'),
+            'name': item.get('name'),
+            'description': item.get('description'),
+            'unit': item.get('unit'),
+            'rate': item.get('rate')
+        } for item in items_documents]
     
-    if not items:
-        return jsonify({"items": [], "no_items": True})
-    return jsonify({"items": items})
+        if not items:
+            return jsonify({"items": [], "no_items": True})
+        return jsonify({"items": items})
 
 
-@app.route('/items/info/<item_description>', methods=['GET'])
+    if request.method == 'POST':
+        # Add new item
+        new_item = request.json
+        new_item['_id'] = str(uuid4())
+
+        if not new_item.get('name'):
+            return jsonify({"error": "Item name is required"}), 400
+
+        items_collection.insert_one(new_item)
+        return jsonify({"message": "Item added successfully"})
+
+
+
+    if request.method == 'PUT':
+        # Update item
+        posted_data = request.get_json() or {}
+        item_id = posted_data.get('_id')
+        existing_item = items_collection.find_one({'_id': item_id})
+        if not existing_item:
+            return jsonify({"error": "Item not found"}), 404
+        
+        item_data = {
+            'name': posted_data.get('name') or existing_item.get('name'),
+            'description': posted_data.get('description') or existing_item.get('description'),
+            'unit': posted_data.get('unit') or existing_item.get('unit'),
+            'rate': posted_data.get('rate') or existing_item.get('rate')
+        }
+        items_collection.replace_one({'_id': item_id}, item_data, upsert=True)
+        
+        return jsonify({"message": "Item updated successfully"})
+    
+
+    if request.method == 'DELETE':
+        # Delete provided item datas
+        posted_data = request.get_json() or {}
+        item_id = posted_data.get('_id')
+
+        items_collection.delete_one({'_id': item_id})
+        return jsonify({"message": "Item deleted successfully"})
+
+
+
+
+## QUOTES
+@app.route('/quote/create', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @require_api_key
-def get_item_info(item_description: str) -> dict:
+def create_quote():
     api_key = session.get('api_key')
-    company_collection = load_collection(api_key, 'Items')
-    item_document = company_collection.find_one({'description': item_description})
-
-    item_data = {
-        'description': item_document.get('description') if item_document else None,
-        'rate': item_document.get('rate') if item_document else None,
-        'unit': item_document.get('unit') if item_document else None,
-        'quantity': item_document.get('quantity') if item_document else None,
-    }
-    return jsonify(item_data)
+    quote_collection = load_collection(api_key, 'Quotes')
+    quote_documents = quote_collection.find()
+    return
 
 
-@app.route('/items/add', methods=['POST'])
-@require_api_key
-def add_item():
-    api_key = session.get('api_key')
-    company_collection = load_collection(api_key, 'Items')
-    new_item = request.json
-
-    if not new_item.get('description'):
-        return jsonify({"error": "Item description is required"}), 400
-    if not new_item.get('rate'):
-        return jsonify({"error": "Item rate is required"}), 400
-    if not new_item.get('unit'):
-        return jsonify({"error": "Item unit is required"}), 400
-
-    company_collection.insert_one(new_item)
-    return jsonify({"message": "Item added successfully"})
+    # if request.method == 'GET':
+    #     items = [{
+    #         '_id': item.get('_id'),
+    #         'name': item.get('name'),
+    #         'description': item.get('description'),
+    #         'unit': item.get('unit'),
+    #         'rate': item.get('rate')
+    #     } for item in items_documents]
+    
+    #     if not items:
+    #         return jsonify({"items": [], "no_items": True})
+    #     return jsonify({"items": items})
 
 
-@app.route('/items/update/<item_description>', methods=['PUT'])
-@require_api_key
-def update_item(item_description: str):
-    api_key = session.get('api_key')
-    company_collection = load_collection(api_key, 'Items')
-    updated_item = request.json
+    # if request.method == 'POST':
+    #     # Add new item
+    #     new_item = request.json
+    #     new_item['_id'] = str(uuid4())
 
-    if not updated_item.get('description'):
-        return jsonify({"error": "Item description is required"}), 400
+    #     if not new_item.get('name'):
+    #         return jsonify({"error": "Item name is required"}), 400
 
-    company_collection.replace_one({'description': item_description}, updated_item)
-    return jsonify({"message": "Item updated successfully"})
+    #     items_collection.insert_one(new_item)
+    #     return jsonify({"message": "Item added successfully"})
 
 
-@app.route('/items/delete/<item_description>', methods=['DELETE'])
-@require_api_key
-def delete_item(item_description: str):
-    api_key = session.get('api_key')
-    company_collection = load_collection(api_key, 'Items')
 
-    company_collection.delete_one({'item_description': item_description})
-    return jsonify({"message": "Item deleted successfully"})
+    # if request.method == 'PUT':
+    #     # Update item
+    #     posted_data = request.get_json() or {}
+    #     item_id = posted_data.get('_id')
+    #     existing_item = items_collection.find_one({'_id': item_id})
+    #     if not existing_item:
+    #         return jsonify({"error": "Item not found"}), 404
+        
+    #     item_data = {
+    #         'name': posted_data.get('name') or existing_item.get('name'),
+    #         'description': posted_data.get('description') or existing_item.get('description'),
+    #         'unit': posted_data.get('unit') or existing_item.get('unit'),
+    #         'rate': posted_data.get('rate') or existing_item.get('rate')
+    #     }
+    #     items_collection.replace_one({'_id': item_id}, item_data, upsert=True)
+        
+    #     return jsonify({"message": "Item updated successfully"})
+    
+
+    # if request.method == 'DELETE':
+    #     # Delete provided item datas
+    #     posted_data = request.get_json() or {}
+    #     item_id = posted_data.get('_id')
+
+    #     items_collection.delete_one({'_id': item_id})
+    #     return jsonify({"message": "Item deleted successfully"})
+
+
+
+
 
 
 

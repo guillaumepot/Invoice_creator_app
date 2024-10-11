@@ -3,8 +3,11 @@
 """
 
 # LIBS
+import datetime
 import requests
 import streamlit as st
+
+from api_requests import *
 
 
 # Set page configuration
@@ -25,10 +28,6 @@ if 'session' not in st.session_state:
     st.session_state.session = requests.Session()
 
 
-# API URL & PORT
-api_url = "localhost"
-api_port = 5000
-
 
 
 ### SIDEBAR ###
@@ -44,18 +43,6 @@ if st.session_state.api_key == False:
     # Display error message if not logged in on the main page
     st.error("Please Log In to access the app.")
 
-    def request_check_api_key(api_key):
-        url = f"http://{api_url}:{api_port}/login"
-        response = st.session_state.session.post(url, data={'api_key': api_key})
-
-        if response.status_code == 200:
-            st.session_state.api_key = True
-            st.session_state.status = "Logged In"
-            st.success("Successfully logged in!")
-        else:
-            st.session_state.api_key = False
-            st.session_state.status = "Login Failed"
-            st.error("Failed to log in. Please check your API key.")
 
     api_key_field_value = st.sidebar.text_input("API Key", type="password")
     st.sidebar.button("Log In", on_click=request_check_api_key, args=(api_key_field_value,))
@@ -65,15 +52,6 @@ if st.session_state.api_key == False:
 
 else:
     # Logout button
-
-    def request_logout():
-        url = f"http://{api_url}:{api_port}/logout"
-        response = st.session_state.session.post(url)
-        if response.status_code == 200:
-            st.session_state.api_key = False
-            st.rerun()
-
-
     st.sidebar.empty()
     if st.sidebar.button("Log Out", on_click=request_logout):
         st.session_state.api_key = False
@@ -95,7 +73,6 @@ else:
 ## END OF SIDEBAR ##
 
 
-
 ## PAGES
 page_names = {
     'en': ["Overview", "My Company", "Clients", "Items", "Quotes", "Invoices", "Settings"],
@@ -115,26 +92,6 @@ if page == pages[1]: # My Company
     st.title(page_names[st.session_state.lang][1])
 
     # Fetch my company informations
-    def fetch_my_company_informations():
-        url = f"http://{api_url}:{api_port}/company/informations"
-        response = st.session_state.session.get(url)
-        if response.status_code == 200:
-            return response.json()
-        else:
-            st.error("Failed to fetch company informations.")
-            st.error(response.text)
-
-
-    def update_my_company(updated_data):
-        url = f"http://{api_url}:{api_port}/company/informations"
-        response = st.session_state.session.put(url, json=updated_data)
-        if response.status_code == 200:
-            st.success("Company information updated successfully.")
-        else:
-            st.error("Failed to update company informations.")
-            st.error(response.text)
-
-
     data = fetch_my_company_informations()
 
     if data:
@@ -162,37 +119,10 @@ if page == pages[2]:  # Clients
 
 
     if subpage == subpages[0]:  # Client List
-        st.title(page_names[st.session_state.lang][2])
+        st.title(subpages_name[st.session_state.lang][0])
 
-        def fetch_my_clients():
-            url = f"http://{api_url}:{api_port}/clients"
-            response = st.session_state.session.get(url)
-            if response.status_code == 200:
-                return response.json()
-            else:
-                st.error("Failed to fetch clients.")
-                st.error(response.text)
-                return {}
-            
-        def update_client(client_data):
-            url = f"http://{api_url}:{api_port}/clients"
-            response = st.session_state.session.put(url, json=client_data)
-            st.write("Update request sent with data:", client_data)  # Debug statement
-            if response.status_code == 200:
-                st.success("Client updated successfully.")
-            else:
-                st.error("Failed to update client.")
 
-        def delete_client(client_id):
-            url = f"http://{api_url}:{api_port}/clients"
-            response = st.session_state.session.delete(url, json={"_id": client_id})
-            if response.status_code == 200:
-                st.success("Client deleted successfully.")
-            else:
-                st.error("Failed to delete client.")
-                st.error(response.text)
-
-        data = fetch_my_clients()
+        data = fetch_clients()
         
         if "clients" in data:
             sorted_clients = sorted(data["clients"], key=lambda client: client["name"])
@@ -238,16 +168,8 @@ if page == pages[2]:  # Clients
 
 
     elif subpage == subpages[1]: # New Client
-        st.title(subpages_name[st.session_state.lang][0])
+        st.title(subpages_name[st.session_state.lang][1])
 
-        def create_new_client(client_data):
-            url = f"http://{api_url}:{api_port}/clients"
-            response = st.session_state.session.post(url, json=client_data)
-            if response.status_code == 200:
-                st.success("Client created successfully.")
-            else:
-                st.error("Failed to create client.")
-                st.error(response.text)
 
         # First row
         keys_order_row1 = ["name", "address", "zipcode", "city", "country"]
@@ -273,36 +195,185 @@ if page == pages[2]:  # Clients
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if page == pages[3]: # Items
-    st.title(page_names[st.session_state.lang][3])
 
-if page == pages[4]: # Quotes
-    st.title(page_names[st.session_state.lang][4])
+
+    # Add new child pages
+    subpages_name = {
+        'en': ["Item List", "New Item"],
+        'fr': ["Liste des articles", "Nouvel article"]
+    }
+    subpages = [subpages_name[st.session_state.lang][i] for i in range(len(subpages_name[st.session_state.lang]))]
+    subpage = st.sidebar.radio("Items", subpages)
+
+    if subpage == subpages[0]:  # Item List
+        st.title(subpages_name[st.session_state.lang][0])
+
+        data = fetch_items()
+            
+        
+        if "items" in data:
+            sorted_items = sorted(data["items"], key=lambda item: item["name"])
+
+            for item in sorted_items:
+                with st.expander(item["name"], expanded=False):
+                    # First row
+                    keys_order_row1 = ["description"]
+                    column_widths_row1 = [1]
+                    cols_row1 = st.columns(column_widths_row1)
+                    for col, key in zip(cols_row1, keys_order_row1):
+                        unique_key = f"{item['_id']}_{key}"
+                        col.text_input(key.capitalize(), item.get(key, ""), key=unique_key)
+
+                    # Second row
+                    keys_order_row2 = ["unit", "rate"]
+                    column_widths_row2 = [2, 1]
+                    cols_row2 = st.columns(column_widths_row2)
+                    for col, key in zip(cols_row2, keys_order_row2):
+                        unique_key = f"{item['_id']}_{key}"
+                        col.text_input(key.capitalize(), item.get(key, ""), key=unique_key)
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("Update", key=f"update_{item['_id']}"):
+                            updated_item_data = {}
+                            updated_item_data["_id"] = item["_id"]
+                            for key in keys_order_row1 + keys_order_row2:
+                                unique_key = f"{item['_id']}_{key}"
+                                updated_item_data[key] = st.session_state.get(unique_key, item.get(key, ""))
+
+                            update_item(updated_item_data)
+                            st.rerun()
+                    with col2:
+                        if st.button("Delete", key=f"delete_{item['_id']}"):
+                            delete_item(item["_id"])
+                            st.rerun()
+                            
+        else:
+            st.write("No items found.")
+
+
+
+
+    elif subpage == subpages[1]: # New Item
+        st.title(subpages_name[st.session_state.lang][1])
+
+        # First row
+        keys_order_row1 = ["name", "description"]
+        column_widths_row1 = [1,2]
+        cols_row1 = st.columns(column_widths_row1)
+        item_data_row1 = {}
+        for col, key in zip(cols_row1, keys_order_row1):
+            item_data_row1[key] = col.text_input(key.capitalize(), key=key)
+
+        # Second row
+        keys_order_row2 = ["unit", "rate"]
+        column_widths_row2 = [2, 1]
+        cols_row2 = st.columns(column_widths_row2)
+        item_data_row2 = {}
+        for col, key in zip(cols_row2, keys_order_row2):
+            item_data_row2[key] = col.text_input(key.capitalize(), key=key)
+
+        # Combine item data from both rows
+        item_data = {**item_data_row1, **item_data_row2}
+
+        if st.button("Create"):
+            create_new_item(item_data)
+
+
+
+
+
+if page == pages[4]:  # Quotes
+
+    # Add new child pages
+    subpages_name = {
+        'en': ["Quote List", "New Quote"],
+        'fr': ["Liste des devis", "Nouveau devis"]
+    }
+    subpages = [subpages_name[st.session_state.lang][i] for i in range(len(subpages_name[st.session_state.lang]))]
+    subpage = st.sidebar.radio("Quotes", subpages)
+
+    if subpage == subpages[0]:  # Quote List
+        st.title(subpages_name[st.session_state.lang][0])
+
+    elif subpage == subpages[1]:  # New Quote
+        st.title(subpages_name[st.session_state.lang][1])
+
+        # Fetch clients and items data
+        clients_data = fetch_clients()
+        items_data = fetch_items()
+
+
+        col1, col2 = st.columns(2)
+        with col1:
+            quote_name = st.text_input("Name")
+            client_names = [client["name"] for client in clients_data.get("clients", [])]
+            selected_client = st.selectbox("Client", client_names)
+
+        with col2:
+            # Quote details input fields
+            created_date = st.date_input("Created Date", value=datetime.date.today())
+            valid_until = st.date_input("Valid Until", value=datetime.date.today() + datetime.timedelta(days=30))
+
+        # Items selection within the expander but outside the form
+        with st.expander("Items", expanded=False):
+            item_names = [item["name"] for item in items_data.get("items", [])]
+            selected_items = st.multiselect("Select Items", item_names)
+            
+            # Debug statement to check selected items
+            st.write("Selected Items:", selected_items)
+            
+            # Ensure number input fields are created
+            item_quantities = {item: st.number_input(f"Quantity for {item}", min_value=0, value=1) for item in selected_items}
+
+        with st.expander("Amounts", expanded=False):
+            # VAT and discount
+            vat = st.text_input("VAT", value="0%")
+            discount = st.text_input("Discount", value="0%")
+            discount_description = st.text_input("Discount Description")
+
+        with st.expander("Currency, notes, and terms", expanded=False):
+            # Currency, notes, and terms
+            currency = st.selectbox("Currency", ["USD", "EUR", "GBP"])
+            notes = st.text_area("Notes")
+            terms = st.text_area("Terms")
+
+        # Calculate amounts
+        total_amount = sum(items_data["items"][item_names.index(item)]["rate"] * quantity for item, quantity in item_quantities.items())
+        vat_percentage = float(vat.strip('%')) / 100
+        total_amount_vat = total_amount * (1 + vat_percentage)
+
+        # Create quote data
+        quote_data = {
+            "name": quote_name,
+            "client": selected_client,
+            "created_date": str(created_date),
+            "valid_until": str(valid_until),
+            "items": [{"name": item, "quantity": quantity} for item, quantity in item_quantities.items()],
+            "total_amount": total_amount,
+            "vat": vat,
+            "total_amount_vat": total_amount_vat,
+            "discount": discount,
+            "discount_description": discount_description,
+            "currency": currency,
+            "notes": notes,
+            "terms": terms
+        }
+
+        if st.button("Create"):
+            st.warning("WIP")
+            st.write(quote_data)
+        # create_new_quote(quote_data)
+
+
+
+
+
+
+
+
+
 
 if page == pages[5]: # Invoices
     st.title(page_names[st.session_state.lang][5])
