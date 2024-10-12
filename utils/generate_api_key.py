@@ -1,100 +1,116 @@
-import json
+#utils/generate_api_key.py
+
+
+# Lib
+import getpass
 from passlib.context import CryptContext
-from pymongo import MongoClient
+from pymongo import MongoClient, errors
 from uuid import uuid4
 
+
+
+# Vars
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
-file_path = "./flask/api_keys.json"
 
 
+# Functions
+def get_mongodb_connexion() -> MongoClient:
 
-def generate_api_key():
-    print("API KEY GENERATOR:")
-    try:
-        # get informations
-        firstname: str = input("Enter your firstname: ").strip()
-        lastname: str = input("Enter your lastname: ").strip()
-        base_company: str = input("Enter your company name: ").strip()
-
-        if not firstname or not lastname or not base_company:
-            raise ValueError("All fields are required.")
+    print("MongoDB connexion requires credentials..")
+    print("Enter the following credentials and mongoDB connexion informations:")
+    mongo_host = input("Enter your MongoDB host (default: localhost): ").strip() or "localhost"
+    mongo_port = input("Enter your MongoDB port (default: 27017): ").strip() or "27017"
+    mongo_user = input("Enter your MongoDB username (default: root): ").strip() or "root"
+    mongo_password = getpass.getpass("Enter your MongoDB password (default: root): ").strip() or "root"
 
 
-        # update company to a name without spaces and lowercase
-        company = base_company.replace(" ", "_").lower()
+    print(f"host: {mongo_host}, port: {mongo_port}, username: {mongo_user}")
 
 
-        # generate key
-        api_key: str = str(uuid4())
-        hashed_api_key: str = pwd_context.hash(api_key)
-
-
-        # Read existing data from the file
-        try:
-            with open(file_path, "r") as f:
-                data = json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            print("File not found or invalid JSON. Creating a new file...")
-            data = {}
-            with open(file_path, "w") as f:
-                pass
-        else:
-            pass
-        finally:
-            # generate data to dump
-            username = f"{firstname}_{lastname}"
-            data[username] = {
-                "username": username,
-                "key": hashed_api_key,
-                "company": company
-            }
-
-            # write updated data to the file
-            with open(file_path, "w") as f:
-                json.dump(data, f, indent=4)
-
-
-        # generate mongo DataBase, collections and user with roles
-        client = MongoClient(
-                            host = "127.0.0.1",
-                            port = 27017,
-                            username = "root", # DEV - Change to a secure user
-                            password = "root"  # DEV - Change to a secure password
+    client = MongoClient(
+                        host = mongo_host,
+                        port = int(mongo_port),
+                        username = mongo_user,
+                        password = mongo_password,
+                        authSource = "admin"
                         )
-        
-        with client:
-            db = client[company]
-            db.command("createUser",
-                       f"{firstname}_{lastname}",
-                       pwd=api_key,
-                       roles=["readWrite"],
-                       customData={"company": company}
-                       )
-            
-            db.create_collection("Quotes")
-            db.create_collection("Invoices")
-            db.create_collection("Company")
-            db.create_collection("Items")
-            db.create_collection("Clients")
-            
-
-            db.Company.insert_one({
-                "name" : base_company
-            })
+    
+    try:
+        client.admin.command('ismaster')
+        print("MongoDB connection successful.")
+        return client
+    
+    except errors.ConnectionFailure as e:
+        raise ValueError(f"MongoDB not available. Error: {e}")
 
 
-    except ValueError as e:
-        print(f"Error: {e}")
 
 
-    else:
-        # Display api key
-        print("Keep your API KEY safe.")
-        print(f"API KEY: {api_key}")
+
+def generate_api_key() -> dict:
+
+    print("\n")
+    print("Enter the following informations to generate an API KEY:")
+    firstname: str = input("Enter your firstname: ").strip()
+    lastname: str = input("Enter your lastname: ").strip()
+    company: str = input("Enter your company name: ").strip()
+
+    if not firstname or not lastname or not company:
+        raise ValueError("All fields are required. Exiting..")
+
+
+    company = company.replace(" ", "_").lower()
+
+    api_key: str = str(uuid4())
+    hashed_api_key: str = pwd_context.hash(api_key)
+
+    print("\n")
+    print("API KEY GENERATED:")
+    print(f"API KEY: {api_key}")
+    print("Keep your API KEY safe, it can't be recovered.")
+
+    user_data: dict = {
+        "username": f"{firstname}_{lastname}",
+        "password": hashed_api_key,
+        "company": company
+    }
+
+    return user_data
+
+
+
+def insert_user_in_db(client: MongoClient, user_data:dict):
+
+    db = client["users"]
+
+    try:
+        db.create_collection("user_data")
+
+    except errors.CollectionInvalid:
+        pass
 
     finally:
-        print("Exiting...")
+        collection = db["user_data"]
+
+
+        collection.insert_one({
+                    "username" : user_data["username"],
+                    "password" : user_data["password"],
+                    "company" : user_data["company"]
+                })
+
+        print("User data inserted in MongoDB.")
+
+
 
 
 if __name__ == '__main__':
-    generate_api_key()
+    
+    print("API KEY GENERATOR:")
+
+    client = get_mongodb_connexion()
+    user_data = generate_api_key()
+
+    insert_user_in_db(client, user_data)
+
+    print("Exiting...")
