@@ -42,4 +42,3 @@ def set_api_key():
     else:
         session['api_key'] = api_key
         return {"message": "Logged in successfully"}, 200
-

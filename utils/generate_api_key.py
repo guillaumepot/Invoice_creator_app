@@ -20,8 +20,8 @@ def get_mongodb_connexion() -> MongoClient:
     print("Enter the following credentials and mongoDB connexion informations:")
     mongo_host = input("Enter your MongoDB host (default: localhost): ").strip() or "localhost"
     mongo_port = input("Enter your MongoDB port (default: 27017): ").strip() or "27017"
-    mongo_user = input("Enter your MongoDB username (default: root): ").strip() or "root"
-    mongo_password = getpass.getpass("Enter your MongoDB password (default: root): ").strip() or "root"
+    mongo_user = input("Enter your MongoDB username: ").strip()
+    mongo_password = getpass.getpass("Enter your MongoDB password: ").strip()
 
 
     print(f"host: {mongo_host}, port: {mongo_port}, username: {mongo_user}")

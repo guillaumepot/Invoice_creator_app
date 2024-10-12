@@ -4,9 +4,6 @@
 # Lib
 from flask import session
 from functools import wraps
-import json
-import os
-from pymongo import MongoClient
 from werkzeug.exceptions import Unauthorized
 
 
@@ -33,33 +30,9 @@ def control_api_key(api_key:str) -> bool:
 
     db = client["users"]
     collection = db["user_data"]
-    keys = collection.find()
-
+    keys = collection.find({}, {"password": 1, "_id": 0})
 
     if not api_key or not any(pwd_context.verify(api_key, key) for key in keys):
         return False
     else:
         return True
-
-
-
-
-
-
-
-
-# def get_api_keys(file_path:str) -> list:
-#     try:
-#         with open(file_path, "r") as f:
-#             data = json.load(f)
-#     except (FileNotFoundError, json.JSONDecodeError):
-#         raise FileNotFoundError("File not found or invalid JSON.")
-#     else:
-#         keys: list = []
-#         for key, value in data.items():
-#             keys.append(value["key"])
-#     finally:
-#         return keys
-
-
-

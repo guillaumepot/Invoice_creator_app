@@ -23,6 +23,10 @@ if (!user) {
             {
                 role: "userAdminAnyDatabase",
                 db: "admin"
+            },
+            {
+                role: "readWrite",
+                db: "users"
             }
         ]
     });

@@ -8,14 +8,6 @@ from werkzeug.exceptions import Unauthorized
 
 
 
-# Api Keys file
-keys_file_path = "./api_keys.json"
-
-# SECURE ROUTES DECORATOR
-
-
-
-
 
 def load_collection(api_key:str, collection:str) -> MongoClient:
     client, company = get_mongo_client(api_key)
