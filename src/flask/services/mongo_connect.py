@@ -72,9 +72,29 @@ def fetch_collection():
 
 
 
-def push_update_in_collection(data:dict, document_to_update:str) -> None:
+def push_update_in_collection(data:dict, document_to_update:str, mode:str = "") -> None:
     """
     Push an update in the collection (document_to_update is the type (key) of document to update)
     """
     collection = fetch_collection()
-    collection.replace_one({"type":document_to_update}, data, upsert=True)
+
+    if document_to_update == "company":
+        collection.replace_one({"type":document_to_update}, data, upsert=True)
+
+    else:
+        if mode == "create":
+            collection.insert_one({"type":document_to_update, **data})
+
+        elif mode == "update":
+            to_update = collection.find_one({'_id': data.get('_id'), 'type': document_to_update})
+            if to_update:
+                collection.replace_one({'_id': data.get('_id'), 'type': document_to_update}, data, upsert=True)
+            else:
+                return jsonify({"error": "Document not found"}), 404
+            
+        elif mode == "delete":
+            to_delete = collection.find_one({'_id': data.get('_id'), 'type': document_to_update})
+            if to_delete:
+                collection.delete_one({'_id': data.get('_id')})
+            else:
+                return jsonify({"error": "Document not found"}), 404

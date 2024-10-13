@@ -195,6 +195,7 @@ if page == pages[2]:  # Clients
 
 
 
+
 if page == pages[3]: # Items
 
 
@@ -218,8 +219,8 @@ if page == pages[3]: # Items
             for item in sorted_items:
                 with st.expander(item["name"], expanded=False):
                     # First row
-                    keys_order_row1 = ["description"]
-                    column_widths_row1 = [1]
+                    keys_order_row1 = ["name", "description"]
+                    column_widths_row1 = [1, 2]
                     cols_row1 = st.columns(column_widths_row1)
                     for col, key in zip(cols_row1, keys_order_row1):
                         unique_key = f"{item['_id']}_{key}"
@@ -281,7 +282,6 @@ if page == pages[3]: # Items
 
 
 
-
 if page == pages[4]:  # Quotes
 
     # Add new child pages
@@ -306,13 +306,17 @@ if page == pages[4]:  # Quotes
                 with st.expander(quote["name"], expanded=False):
 
                     # First row
-                    keys_order_row1 = ["name"]
-                    for key in keys_order_row1:
+                    keys_order_row1 = ["name", "number"]
+                    column_widths_row1 = [1, 1]
+                    cols_row1 = st.columns(column_widths_row1)
+                    for col, key in zip(cols_row1, keys_order_row1):
                         st.text(key.capitalize() + ": " + str(quote.get(key, "")))
                     
                     # Second row
                     keys_order_row2 = ["client"]
-                    for key in keys_order_row2:
+                    column_widths_row2 = [1]
+                    cols_row2 = st.columns(column_widths_row2)
+                    for col, key in zip(cols_row2, keys_order_row2):
                         st.text(key.capitalize() + ": " + str(quote.get(key, "")))
 
                     # Third row
@@ -323,29 +327,36 @@ if page == pages[4]:  # Quotes
                         col.text(key.capitalize() + ": " + str(quote.get(key, "")))
 
                     # Fourth row
-                    keys_order_row4 = ["total_amount", "vat", "total_amount_vat"]
-                    column_widths_row4 = [1, 1, 1]
+                    keys_order_row4 = ["total_amount_no_vat", "vat"]
+                    column_widths_row4 = [2, 1]
                     cols_row4 = st.columns(column_widths_row4)
                     for col, key in zip(cols_row4, keys_order_row4):
                         col.text(key.capitalize() + ": " + str(quote.get(key, "")))
 
                     # Fifth row
-                    keys_order_row5 = ["discount", "discount_description"]
-                    column_widths_row5 = [1, 2]
+                    keys_order_row5 = ["total_amount_with_discount", "discount"]
+                    column_widths_row5 = [2, 1]
                     cols_row5 = st.columns(column_widths_row5)
                     for col, key in zip(cols_row5, keys_order_row5):
                         col.text(key.capitalize() + ": " + str(quote.get(key, "")))
 
                     # Sixth row
-                    keys_order_row6 = ["currency", "notes", "terms"]
-                    column_widths_row6 = [1, 2, 2]
+                    keys_order_row6 = ["total_amount_with_vat"]
+                    column_widths_row6 = [1]
                     cols_row6 = st.columns(column_widths_row6)
                     for col, key in zip(cols_row6, keys_order_row6):
                         col.text(key.capitalize() + ": " + str(quote.get(key, "")))
 
                     # Seventh row
-                    keys_order_row7 = ["items"]
-                    for key in keys_order_row7:
+                    keys_order_row7 = ["currency", "discount_description"]
+                    column_widths_row7 = [1, 3]
+                    cols_row7 = st.columns(column_widths_row7)
+                    for col, key in zip(cols_row7, keys_order_row7):
+                        col.text(key.capitalize() + ": " + str(quote.get(key, "")))
+
+                    # Eighth row
+                    keys_order_row8 = ["items"]
+                    for key in keys_order_row8:
                         items = quote.get(key, [])
                         if isinstance(items, list):
                             items_str = ", ".join([str(item) for item in items])
@@ -353,24 +364,28 @@ if page == pages[4]:  # Quotes
                             items_str = str(items)
                         st.text(key.capitalize() + ": " + items_str)
 
+                    # Ninth row
+                    keys_order_row9 = ["description"]
+                    column_widths_row9 = [1]
+                    cols_row9 = st.columns(column_widths_row9)
+                    for col, key in zip(cols_row9, keys_order_row9):
+                        col.text(key.capitalize() + ": " + str(quote.get(key, "")))
+
+                    # Tenth row
+                    keys_order_row10 = ["terms"]
+                    column_widths_row10 = [1]
+                    cols_row10 = st.columns(column_widths_row10)
+                    for col, key in zip(cols_row10, keys_order_row10):
+                        col.text(key.capitalize() + ": " + str(quote.get(key, "")))
+
+
+                    # Define columns for buttons
+                    col1, col2 = st.columns(2)
+
                     with col1:
-                        if st.button("Update", key=f"update_{quote['name']}"):
-                            updated_quote_data = {}
-                            updated_quote_data["name"] = quote["name"]
-                            for key in keys_order_row1 + keys_order_row2:
-                                unique_key = f"{quote['name']}_{key}"
-                                updated_item_data[key] = st.session_state.get(unique_key, quote.get(key, ""))
-
-                            update_quote(updated_item_data)
-                            st.rerun()
-                            
-                    with col2:
                         if st.button("Delete", key=f"delete_{quote['_id']}"):
-                            delete_quote(quote["name"])
+                            delete_quote(quote["_id"])
                             st.rerun()
-                            
-
-
 
         else:
             st.write("No quotes found.")
@@ -384,7 +399,6 @@ if page == pages[4]:  # Quotes
         clients_data = fetch_clients()
         items_data = fetch_items()
 
-
         col1, col2 = st.columns(2)
         with col1:
             quote_name = st.text_input("Name")
@@ -396,12 +410,15 @@ if page == pages[4]:  # Quotes
             created_date = st.date_input("Created Date", value=datetime.date.today())
             valid_until = st.date_input("Valid Until", value=datetime.date.today() + datetime.timedelta(days=30))
 
-        # Items selection within the expander but outside the form
+        with st.expander("Currency, description, and terms", expanded=False):
+            # Currency, notes, and terms
+            currency = st.selectbox("Currency", ["EUR", "USD", "GBP"])
+            description = st.text_area("Description")
+            terms = st.text_area("Terms")
+
         with st.expander("Items", expanded=False):
             item_names = [item["name"] for item in items_data.get("items", [])]
             selected_items = st.multiselect("Select Items", item_names)
-            
-            # Ensure number input fields are created
             item_quantities = {item: st.number_input(f"Quantity for {item}", min_value=0, value=1) for item in selected_items}
 
         with st.expander("Amounts", expanded=False):
@@ -410,16 +427,11 @@ if page == pages[4]:  # Quotes
             discount = st.text_input("Discount", value="0%")
             discount_description = st.text_input("Discount Description")
 
-        with st.expander("Currency, notes, and terms", expanded=False):
-            # Currency, notes, and terms
-            currency = st.selectbox("Currency", ["EUR", "USD", "GBP"])
-            notes = st.text_area("Notes")
-            terms = st.text_area("Terms")
-
         # Calculate amounts
-        total_amount = sum(float(items_data["items"][item_names.index(item)]["rate"]) * quantity for item, quantity in item_quantities.items())
+        total_amount_no_vat = sum(float(items_data["items"][item_names.index(item)]["rate"]) * quantity for item, quantity in item_quantities.items())
+        total_amount_with_discount = total_amount_no_vat * (1 - float(discount.strip('%')) / 100)
         vat_percentage = float(vat.strip('%')) / 100
-        total_amount_vat = total_amount * (1 + vat_percentage)
+        total_amount_with_vat = total_amount_with_discount * (1 + vat_percentage)
 
         # Create quote data
         quote_data = {
@@ -427,14 +439,23 @@ if page == pages[4]:  # Quotes
             "client": selected_client,
             "created_date": str(created_date),
             "valid_until": str(valid_until),
-            "items": [{"name": item, "quantity": quantity} for item, quantity in item_quantities.items()],
-            "total_amount": total_amount,
+            "items": [
+                {
+                    "name": item,
+                    "unit": items_data["items"][item_names.index(item)]["unit"],
+                    "rate": items_data["items"][item_names.index(item)]["rate"],
+                    "quantity": quantity
+                }
+                for item, quantity in item_quantities.items()
+            ],
+            "total_amount_no_vat": total_amount_no_vat,
+            "total_amount_with_discount": total_amount_with_discount,
             "vat": vat,
-            "total_amount_vat": total_amount_vat,
+            "total_amount_with_vat": total_amount_with_vat,
             "discount": discount,
             "discount_description": discount_description,
             "currency": currency,
-            "notes": notes,
+            "description": description,
             "terms": terms
         }
 
@@ -443,12 +464,112 @@ if page == pages[4]:  # Quotes
 
 
 
-
-
-
-
 if page == pages[5]: # Invoices
-    st.title(page_names[st.session_state.lang][5])
+
+    # Add new child pages
+    subpages_name = {
+        'en': ["Invoice List", "New Invoice"],
+        'fr': ["Liste des factures", "Nouvelle facture"]
+    }
+    subpages = [subpages_name[st.session_state.lang][i] for i in range(len(subpages_name[st.session_state.lang]))]
+    subpage = st.sidebar.radio("Invoices", subpages)
+
+    if subpage == subpages[0]:  # Invoice List
+        st.title(subpages_name[st.session_state.lang][0])
+        
+
+        # Fetch invoices
+        data = fetch_invoices()
+
+        if "invoices" in data:
+            sorted_invoices = sorted(data["invoices"], key=lambda invoice: invoice["name"])
+
+            for invoice in sorted_invoices:
+                with st.expander(invoice["name"], expanded=False):
+
+                    # First row
+                    keys_order_row1 = ["name", "number"]
+                    column_widths_row1 = [1, 1]
+                    cols_row1 = st.columns(column_widths_row1)
+                    for col, key in zip(cols_row1, keys_order_row1):
+                        st.text(key.capitalize() + ": " + str(invoice.get(key, "")))
+                    
+                    # Second row
+                    keys_order_row2 = ["state"]
+                    column_widths_row2 = [1]
+                    cols_row2 = st.columns(column_widths_row2)
+                    for col, key in zip(cols_row2, keys_order_row2):
+                        st.text(key.capitalize() + ": " + str(invoice.get(key, "")))
+                        new_state = st.selectbox("Update State", ["draft", "sent", "paid", "cancelled"], key=f"state_{invoice['_id']}")
+                        new_state = {"state": new_state, "_id": invoice["_id"]}
+                        if st.button("Update", key=f"update_{invoice['_id']}"):
+                            update_invoice_state(new_state)
+                            st.rerun()
+
+
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        if st.button("Delete", key=f"delete_{invoice['_id']}"):
+                            delete_invoice(invoice["_id"])
+                            st.rerun()
+
+
+        else:
+            st.write("No Invoice found.")
+
+
+
+
+    elif subpage == subpages[1]:  # New Invoice
+        st.title(subpages_name[st.session_state.lang][1])
+
+
+        quotes = fetch_quotes()
+        if "quotes" in quotes:
+            sorted_quotes = sorted(quotes["quotes"], key=lambda quote: quote["name"])
+            quote_name = st.selectbox("From quote", [quote["name"] for quote in sorted_quotes])
+            quote = [quote for quote in sorted_quotes if quote["name"] == quote_name][0]
+
+        else:
+            st.warning("No quotes available.")
+        
+
+        company_data = fetch_my_company_informations()
+
+        clients_data = fetch_clients()
+        client = [client for client in clients_data.get("clients", []) if client["name"] == quote["client"]][0]
+
+        col1, col2 = st.columns(2)
+        with col1:
+            created_date = st.date_input("Created Date", value=datetime.date.today())
+        with col2:
+            dure_date = st.date_input("Due Date", value=datetime.date.today() + datetime.timedelta(days=45))
+
+        invoice_terms = st.text_area("Terms")
+
+
+        invoice_data = {
+            "name": f"{quote['name']}-invoice",
+            "emitter": company_data,
+            "client": client,
+            "created_date": created_date.isoformat(),
+            "due_date": dure_date.isoformat(),
+            "items": quote["items"],
+            "total_amount_no_vat": quote["total_amount_no_vat"],
+            "total_amount_with_discount": quote["total_amount_with_discount"],
+            "vat": quote["vat"],
+            "total_amount_with_vat": quote["total_amount_with_vat"],
+            "discount": quote["discount"],
+            "discount_description": quote["discount_description"],
+            "currency": quote["currency"],
+            "description": quote["description"],
+            "terms": invoice_terms,
+            }
+
+
+        if st.button("Create"):
+            generate_invoice(invoice_data)
+
 
 if page == pages[6]: # Settings
     st.title(page_names[st.session_state.lang][6])
