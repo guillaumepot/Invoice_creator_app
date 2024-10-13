@@ -1,4 +1,3 @@
-import requests
 import streamlit as st
 
 
@@ -7,9 +6,12 @@ api_url = "localhost"
 api_port = 5000
 
 
+"""
+LOGIN
+"""
 
 def request_check_api_key(api_key):
-    url = f"http://{api_url}:{api_port}/login"
+    url = f"http://{api_url}:{api_port}/auth/login"
     response = st.session_state.session.post(url, data={'api_key': api_key})
 
     if response.status_code == 200:
@@ -24,7 +26,7 @@ def request_check_api_key(api_key):
 
 
 def request_logout():
-    url = f"http://{api_url}:{api_port}/logout"
+    url = f"http://{api_url}:{api_port}/auth/logout"
     response = st.session_state.session.post(url)
     if response.status_code == 200:
         st.session_state.api_key = False
@@ -32,8 +34,11 @@ def request_logout():
 
 
 
+"""
+COMPANY
+"""
 def fetch_my_company_informations():
-    url = f"http://{api_url}:{api_port}/company/informations"
+    url = f"http://{api_url}:{api_port}/company/info"
     response = st.session_state.session.get(url)
     if response.status_code == 200:
         return response.json()
@@ -42,15 +47,48 @@ def fetch_my_company_informations():
         st.error(response.text)
 
 
-
 def update_my_company(updated_data):
-    url = f"http://{api_url}:{api_port}/company/informations"
+    url = f"http://{api_url}:{api_port}/company/update"
     response = st.session_state.session.put(url, json=updated_data)
     if response.status_code == 200:
         st.success("Company information updated successfully.")
     else:
         st.error("Failed to update company informations.")
         st.error(response.text)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -3,12 +3,7 @@
 
 # Lib
 from flask import session, jsonify
-from functools import wraps
-import json
-import os
 from pymongo import MongoClient, errors
-from werkzeug.exceptions import Unauthorized
-
 
 from utils.config import MONGO_HOST, MONGO_PORT, MONGO_API_USERNAME, MONGO_API_PASSWORD
 
@@ -50,3 +45,36 @@ def check_mongo_availability() -> dict:
         return jsonify({"status": "MongoDB is not available.", "error": str(e)})
     except Exception as e:
         return jsonify({"status": "MongoDB is not available.", "error": str(e)})
+    
+    
+
+def fetch_authenticated_client(api_key:str) -> MongoClient:
+    """
+    Return an authenticated connection to the MongoDB (user specific)
+    """
+    user_data = session.get('user_data')
+    username = user_data.get('username')
+    return connect_to_mongo(username = username, password = api_key, authSource = "admin")
+
+
+def fetch_collection(): 
+    """
+    Fetch User collection
+    """
+    user_data = session.get('user_data')
+    company = user_data.get('company')
+
+    client = fetch_authenticated_client(session.get('api_key'))
+    db = client["users"]
+
+    collection = db[company]
+    return collection
+
+
+
+def push_update_in_collection(data:dict, document_to_update:str) -> None:
+    """
+    Push an update in the collection (document_to_update is the type (key) of document to update)
+    """
+    collection = fetch_collection()
+    collection.replace_one({"type":document_to_update}, data, upsert=True)

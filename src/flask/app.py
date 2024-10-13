@@ -11,6 +11,7 @@ from uuid import uuid4
 
 from routers.information import information_router
 from routers.authentification import authentification_router
+from routers.company import company_router
 from utils.config import FLASK_HOST, FLASK_PORT, DEBUG_MODE, FLASK_SECRET_APP_KEY
 from utils.limiter import init_limiter
 
@@ -41,11 +42,18 @@ def after_request(response):
 
 
 """
-Routers
+Routes & Routers
 """
+@app.route('/')
+def home():
+    return jsonify({"message": "Hello World!"})
+    #api_key = session.get('api_key')
+    #return render_template('home.html', api_key=api_key)
+
+
 app.register_blueprint(information_router, url_prefix='/info')
 app.register_blueprint(authentification_router, url_prefix='/auth')
-
+app.register_blueprint(company_router, url_prefix='/company')
 
 
 # Start app

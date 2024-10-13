@@ -86,7 +86,7 @@ page = st.sidebar.radio("Navigation", pages)
 if page == pages[0]: # Overview
     st.subheader(page_names[st.session_state.lang][0])
 
-
+    ### WIP ###
 
 if page == pages[1]: # My Company
     st.title(page_names[st.session_state.lang][1])
@@ -95,7 +95,7 @@ if page == pages[1]: # My Company
     data = fetch_my_company_informations()
 
     if data:
-        keys_order = ["name", "address", "zipcode", "city", "country", "email", "phone", "siret", "vat_number"]
+        keys_order = ["name", "address", "zipcode", "city", "country", "email", "phone", "siret", "vat_number", "iban", "bic"]
         updated_data = {}
         for key in keys_order:
             value = data.get(key)

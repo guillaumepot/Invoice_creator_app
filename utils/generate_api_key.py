@@ -71,7 +71,8 @@ def generate_api_key() -> dict:
 
     user_data: dict = {
         "username": f"{firstname}_{lastname}",
-        "password": hashed_api_key,
+        "password": api_key,
+        "hashed_password": hashed_api_key,
         "company": company
     }
 
@@ -95,11 +96,52 @@ def insert_user_in_db(client: MongoClient, user_data:dict):
 
         collection.insert_one({
                     "username" : user_data["username"],
-                    "password" : user_data["password"],
+                    "password" : user_data["hashed_password"],
                     "company" : user_data["company"]
                 })
 
         print("User data inserted in MongoDB.")
+
+
+
+def create_user_in_db(client: MongoClient, user_data: dict):
+
+    db = client["admin"]
+
+    db.command(
+        {
+            "createRole": f"{user_data['company']}_role",
+            "privileges": [
+                {
+                    "resource": {"db": "users", "collection": user_data["company"]},
+                    "actions": ["find", "insert", "update", "remove"]
+                }
+            ],
+            "roles": []
+        }
+    )
+
+    db.command(
+        {
+            "createUser": user_data["username"],
+            "pwd": user_data["password"],
+            "roles": [
+                {
+                    "role": f"{user_data['company']}_role",
+                    "db": "admin"
+                }
+            ]
+        }
+    )
+
+
+    db = client["users"]
+    db.command(
+        {
+            "createCollection": user_data["company"]
+        }
+    )
+
 
 
 
@@ -112,5 +154,6 @@ if __name__ == '__main__':
     user_data = generate_api_key()
 
     insert_user_in_db(client, user_data)
+    create_user_in_db(client, user_data)
 
     print("Exiting...")

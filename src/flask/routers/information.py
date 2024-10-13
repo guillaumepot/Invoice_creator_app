@@ -35,6 +35,7 @@ def get_status():
 
 @information_router.route('/checkmongo', methods=['GET'])
 @limiter.limit("5 per minute")
+@require_api_key
 def get_check_mongo():
     """
     Check if the API can connect to the MongoDB

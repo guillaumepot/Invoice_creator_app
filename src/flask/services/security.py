@@ -32,7 +32,15 @@ def control_api_key(api_key:str) -> bool:
     collection = db["user_data"]
     keys = collection.find({}, {"password": 1, "_id": 0})
 
-    if not api_key or not any(pwd_context.verify(api_key, key) for key in keys):
-        return False
-    else:
-        return True
+    user_data: dict = {}
+
+
+    for key in keys:
+        if pwd_context.verify(api_key, key["password"]):
+            user_doc = collection.find_one({"password": key["password"]}, {"username": 1, "company": 1, "_id": 0})
+            if user_doc:
+                user_data["username"] = user_doc["username"]
+                user_data["company"] = user_doc["company"]
+                return user_data
+            
+            return False

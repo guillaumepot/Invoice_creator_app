@@ -34,7 +34,7 @@ services:
       FLASK_HOST: 0.0.0.0
       FLASK_PORT: 5000
       DEBUG_MODE: True
-      DEFAULT_LIMITER_LIMITS: "60 per minute"
+      DEFAULT_LIMITER_LIMITS: "180 per minute"
       CURRENT_VERSION: "v1"
       FLASK_SECRET_APP_KEY: "faf1Fz1daf8Z8z191Z"
       HASH_ALGORITHM: "argon2"
@@ -75,7 +75,7 @@ services:
       - 8501:8501
     entrypoint: ["python", "app.py"]
     healthcheck:
-      test: ["executable", "arg"]
+      test: ["CMD", "curl", "-f", "http://localhost:8501"]
       interval: 1m30s
       timeout: 30s
       retries: 5
